@@ -65,20 +65,26 @@
             width: 560px;
             height: 315px;
         }
-        .buttons {
-            margin-top: 10px;
-        }
-        .buttons a {
-            color: #ff00ff;
-            text-decoration: none;
-            border: 1px solid #ff00ff;
-            padding: 5px 10px;
-            margin-right: 5px;
-        }
-        .buttons a:hover {
-            background-color: #ff00ff;
-            color: #000;
-        }
+.buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px; /* Adds spacing between buttons */
+    justify-content: center; /* Centers buttons horizontally */
+}
+
+.buttons a {
+    color: #ff00ff;
+    text-decoration: none;
+    border: 1px solid #ff00ff;
+    padding: 5px 15px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.buttons a:hover {
+    background-color: #ff00ff;
+    color: #000;
+}
+
     </style>
 </head>
 <body>
