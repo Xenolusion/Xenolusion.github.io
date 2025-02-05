@@ -14,7 +14,7 @@
             padding: 0;
         }
         header {
-            background-color: #1e1e1e;
+            background-color: #0d47a1;
             padding: 20px;
             display: flex;
             justify-content: space-between;
@@ -32,6 +32,7 @@
             text-decoration: none;
             border-bottom: 2px solid transparent;
             padding-bottom: 5px;
+            transition: border-bottom 0.3s ease;
         }
         nav a:hover {
             border-bottom: 2px solid #f0f0f0;
@@ -43,21 +44,44 @@
         .main-title {
             font-size: 2.5em;
             margin: 0;
-            color: #f0a500;
+            color: #64b5f6;
         }
         .news-item {
             background-color: #1e1e1e;
             padding: 20px;
             margin: 20px 0;
-            border: 1px solid #f0a500;
+            border: 1px solid #64b5f6;
             border-radius: 10px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .news-item:hover {
+            transform: translateY(-10px);
+            background-color: #1565c0;
+        }
+        .news-item h3 {
+            cursor: pointer;
+            margin: 0;
+        }
+        .news-item p {
+            display: none;
         }
         footer {
-            background-color: #1e1e1e;
+            background-color: #0d47a1;
             padding: 10px;
             text-align: center;
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const newsItems = document.querySelectorAll('.news-item h3');
+            newsItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const content = item.nextElementSibling;
+                    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                });
+            });
+        });
+    </script>
 </head>
 <body>
 
@@ -77,15 +101,15 @@
         <h2 class="main-title">Latest News</h2>
         <div class="news-item">
             <h3>Welcome to Xenolusion</h3>
-            <p>Jan 20th, 2025</p>
+            <p>Jan 20th, 2025 - We're thrilled to welcome you to Xenolusion. Stay tuned for exciting updates!</p>
         </div>
         <div class="news-item">
             <h3>EXPANSE Announced</h3>
-            <p>Jan 21st, 2025</p>
+            <p>Jan 21st, 2025 - We are excited to announce our new game, EXPANSE. Prepare for an adventure of a lifetime!</p>
         </div>
         <div class="news-item">
             <h3>EXPANSE to Release Soon</h3>
-            <p>Feb 4th, 2025</p>
+            <p>Feb 4th, 2025 - Get ready! EXPANSE is set to release soon. Mark your calendars!</p>
         </div>
     </section>
 
