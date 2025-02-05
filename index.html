@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xenolusion</title>
+    <title>Xenolusion - Projects</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body {
@@ -56,31 +56,121 @@
     </style>
 </head>
 <body>
+
+    <!-- Header Section -->
     <header>
-        <h1>Xenolusion</h1>
+        <h1>Xenolusion - Projects</h1>
         <nav>
-            <a href="#games">Games</a>
-            <a href="#news">News</a>
-            <a href="#contacts">Contacts</a>
+            <a href="index.html">Home</a>
+            <a href="https://github.com/xenolusion">GitHub</a>
+            <a href="projects.html">Projects</a>
+            <a href="news.html">News</a>
+            <a href="contacts.html">Contacts</a>
         </nav>
     </header>
-    <div class="container">
+
+    <!-- Projects Section -->
+    <section id="projects" class="container">
         <h2 class="main-title">Welcome to Xenolusion</h2>
-        <div class="tab-content" id="games">
-            <h3>Games</h3>
-            <p>Check out my retro-inspired games that take you back to the golden era of gaming.</p>
+        <div class="tab-content">
+            <h3>Projects</h3>
+            <div id="projects-list">Loading projects...</div>
         </div>
-        <div class="tab-content" id="news">
-            <h3>News</h3>
-            <p>Stay updated with the latest news and updates from Xenolusion.</p>
-        </div>
-        <div class="tab-content" id="contacts">
-            <h3>Contacts</h3>
-            <p>Get in touch with me for collaborations or inquiries.</p>
-        </div>
-    </div>
+    </section>
+
+    <!-- Footer Section -->
     <footer>
-        <p>&copy; 2025 Xenolusion</p>
+        <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p>
     </footer>
+
+    <!-- Script to Fetch Projects with project.md -->
+    <script>
+        async function fetchProjects() {
+            const projectsList = document.getElementById('projects-list');
+            projectsList.innerHTML = ''; // Clear loading text
+
+            try {
+                const response = await fetch('https://api.github.com/users/xenolusion/repos');
+                const repos = await response.json();
+
+                for (const repo of repos) {
+                    const defaultBranch = repo.default_branch;
+                    const projectMdUrl = `https://raw.githubusercontent.com/xenolusion/${repo.name}/${defaultBranch}/project.md`;
+                    const downloadsLinksUrl = `https://raw.githubusercontent.com/xenolusion/${repo.name}/${defaultBranch}/downloads_links.txt`;
+
+                    // Check if project.md file exists
+                    const projectMdResponse = await fetch(projectMdUrl);
+                    if (projectMdResponse.ok) {
+                        const projectText = await projectMdResponse.text();
+
+                        const projectDiv = document.createElement('div');
+                        projectDiv.className = 'project';
+
+                        // Project title and GitHub link
+                        const projectTitle = document.createElement('h3');
+                        projectTitle.innerHTML = `<a>${repo.name}</a>`;
+                        projectDiv.appendChild(projectTitle);
+
+                        const projectDescription = document.createElement('p');
+                        projectDescription.textContent = projectText;
+                        projectDiv.appendChild(projectDescription);
+
+                        // GitHub Pages link if it exists
+                        if (repo.has_pages) {
+                            const pagesLink = document.createElement('a');
+                            pagesLink.href = `https://${repo.owner.login}.github.io/${repo.name}`;
+                            pagesLink.target = '_blank';
+                            pagesLink.textContent = 'Project Page';
+                            projectDiv.appendChild(pagesLink);
+                            projectDiv.appendChild(document.createElement('br'));
+                        }
+
+                        // Source link
+                        const sourceLink = document.createElement('a');
+                        sourceLink.href = repo.html_url;
+                        sourceLink.target = '_blank';
+                        sourceLink.textContent = 'Source';
+                        projectDiv.appendChild(sourceLink);
+
+                        // Check if downloads_links.txt exists
+                        const downloadsLinksResponse = await fetch(downloadsLinksUrl);
+                        if (downloadsLinksResponse.ok) {
+                            const downloadsText = await downloadsLinksResponse.text();
+                            const downloadLinks = document.createElement('div');
+                            downloadLinks.className = 'downloads';
+
+                            // Parse each line in downloads_links.txt
+                            downloadsText.split('\n').forEach(line => {
+                                const match = line.match(/^(.+?)="(.+?)"$/);
+                                if (match) {
+                                    const [ , name, url ] = match;
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = url;
+                                    downloadLink.target = '_blank';
+                                    downloadLink.textContent = name;
+                                    downloadLinks.appendChild(downloadLink);
+                                    downloadLinks.appendChild(document.createElement('br'));
+                                }
+                            });
+
+                            projectDiv.appendChild(downloadLinks);
+                        }
+
+                        projectsList.appendChild(projectDiv);
+                    }
+                }
+
+                if (projectsList.innerHTML === '') {
+                    projectsList.innerHTML = '<p>No projects found with project.md.</p>';
+                }
+            } catch (error) {
+                projectsList.innerHTML = '<p>Failed to load projects. Please try again later.</p>';
+                console.error('Error fetching projects:', error);
+            }
+        }
+
+        fetchProjects();
+    </script>
+
 </body>
 </html>
