@@ -142,3 +142,147 @@
     </footer>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenolusion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        header {
+            background-color: #1e1e1e;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 1.5s ease-out;
+        }
+        header h1 {
+            margin: 0;
+        }
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+        nav a {
+            color: #ff4d88;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 5px;
+            transition: border-bottom 0.3s;
+        }
+        nav a:hover {
+            border-bottom: 2px solid #ff4d88;
+        }
+        .container {
+            padding: 40px;
+            text-align: center;
+            flex: 1;
+            animation: fadeInUp 2s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+        .main-title {
+            font-size: 3em;
+            margin: 0;
+            color: #ff4d88;
+            animation: pulse 2s infinite;
+        }
+        .video-container {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            border: 5px solid #ff4d88;
+            border-radius: 10px;
+            padding: 10px;
+            animation: borderGlow 2s infinite;
+        }
+        .video-container iframe {
+            width: 600px;
+            height: 600px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .video-container iframe:hover {
+            transform: scale(1.05);
+        }
+        .empty-pink-square {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            border: 5px solid #ff4d88;
+            border-radius: 10px;
+            padding: 10px;
+            animation: borderGlow 2s infinite;
+            width: 640px;
+            height: 360px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        footer {
+            background-color: #1e1e1e;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            animation: fadeIn 1.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes borderGlow {
+            0% { border-color: #ff4d88; }
+            50% { border-color: #ff0033; }
+            100% { border-color: #ff4d88; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Xenolusion</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="games.html">Games</a>
+            <a href="news.html">News</a>
+            <a href="socials.html">Socials</a>
+        </nav>
+    </header>
+    <section id="projects" class="container">
+        <h2 class="main-title">Welcome to Xenolusion</h2>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="empty-pink-square">
+            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p>
+    </footer>
+</body>
+</html>
