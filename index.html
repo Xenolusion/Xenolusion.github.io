@@ -57,6 +57,27 @@
             padding: 20px;
             width: 300px;
         }
+        .progress-container {
+            border: 2px solid #ff00ff;
+            padding: 20px;
+            width: 300px;
+            margin-top: 20px;
+        }
+        .progress-bar {
+            width: 95%;
+            height: 30px;
+            background-color: #555;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar-inner {
+            width: 90%;
+            height: 100%;
+            background-color: #ff00ff;
+            border-radius: 15px 0 0 15px;
+            transition: width 0.3s ease;
+        }
         .video-box {
             border: 2px solid #ff00ff;
             padding: 20px;
@@ -65,26 +86,23 @@
             width: 560px;
             height: 315px;
         }
-.buttons {
-    margin-top: 10px;
-    display: flex;
-    gap: 15px; /* Adds spacing between buttons */
-    justify-content: center; /* Centers buttons horizontally */
-}
-
-.buttons a {
-    color: #ff00ff;
-    text-decoration: none;
-    border: 1px solid #ff00ff;
-    padding: 5px 15px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.buttons a:hover {
-    background-color: #ff00ff;
-    color: #000;
-}
-
+        .buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 15px; /* Adds spacing between buttons */
+            justify-content: center; /* Centers buttons horizontally */
+        }
+        .buttons a {
+            color: #ff00ff;
+            text-decoration: none;
+            border: 1px solid #ff00ff;
+            padding: 5px 15px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .buttons a:hover {
+            background-color: #ff00ff;
+            color: #000;
+        }
     </style>
 </head>
 <body>
@@ -105,6 +123,13 @@
             <div class="buttons">
                 <a href="games.html">View Games</a>
             </div>
+        </div>
+        <div class="progress-container">
+            <h2>Progress left in: EXPANSE</h2>
+            <div class="progress-bar">
+                <div class="progress-bar-inner"></div>
+            </div>
+            <p>Estimated end date: 2/6/2025</p>
         </div>
         <div class="video-box">
             <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allowfullscreen></iframe>
