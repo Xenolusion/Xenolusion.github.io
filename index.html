@@ -16,10 +16,6 @@
             flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: url('https://path-to-your-background-image.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
         }
         header {
             background-color: #1e1e1e;
@@ -51,6 +47,8 @@
             text-align: center;
             flex: 1;
             animation: fadeInUp 2s ease-out;
+            position: relative;
+            z-index: 1;
         }
         .main-title {
             font-size: 3em;
@@ -86,6 +84,23 @@
             width: 100%;
             animation: fadeIn 1.5s ease-out;
         }
+        .falling-squares {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .square {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #ff4d88;
+            animation: fall 10s infinite linear;
+            opacity: 0.6;
+        }
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -104,9 +119,35 @@
             50% { border-color: #ff0033; }
             100% { border-color: #ff4d88; }
         }
+        @keyframes fall {
+            0% {
+                top: -10%;
+                left: calc(100% * var(--random-x));
+            }
+            100% {
+                top: 110%;
+                left: calc(100% * var(--random-x));
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Falling Squares -->
+    <div class="falling-squares">
+        <!-- Generate 50 squares -->
+        <div class="square" style="--random-x: 0.1;"></div>
+        <div class="square" style="--random-x: 0.2;"></div>
+        <div class="square" style="--random-x: 0.3;"></div>
+        <div class="square" style="--random-x: 0.4;"></div>
+        <div class="square" style="--random-x: 0.5;"></div>
+        <div class="square" style="--random-x: 0.6;"></div>
+        <div class="square" style="--random-x: 0.7;"></div>
+        <div class="square" style="--random-x: 0.8;"></div>
+        <div class="square" style="--random-x: 0.9;"></div>
+        <div class="square" style="--random-x: 1.0;"></div>
+        <!-- Add more squares as needed -->
+    </div>
 
     <!-- Header Section -->
     <header>
