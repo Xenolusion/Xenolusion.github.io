@@ -1,3 +1,94 @@
+GPT Icon
+
+You said:
+make the layout look more like this but change contact to socials and that youtube video is already in the code <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Xenolusion</title> <style> @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'); body { background-color: #121212; color: #f0f0f0; font-family: 'Press Start 2P', cursive; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; } header { background-color: #1e1e1e; padding: 20px; display: flex; justify-content: space-between; align-items: center; animation: fadeIn 1.5s ease-out; } header h1 { margin: 0; } nav { display: flex; gap: 20px; } nav a { color: #ff4d88; text-decoration: none; border-bottom: 2px solid transparent; padding-bottom: 5px; transition: border-bottom 0.3s; } nav a:hover { border-bottom: 2px solid #ff4d88; } .container { padding: 40px; text-align: center; flex: 1; animation: fadeInUp 2s ease-out; position: relative; z-index: 1; } .main-title { font-size: 3em; margin: 0; color: #ff4d88; animation: pulse 2s infinite; } .video-container { margin-top: 40px; display: flex; justify-content: center; position: relative; border: 5px solid #ff4d88; border-radius: 10px; padding: 10px; animation: borderGlow 2s infinite; } .video-container iframe { width: 600px; height: 600px; border-radius: 10px; transition: transform 0.3s; } .video-container iframe:hover { transform: scale(1.05); } footer { background-color: #1e1e1e; padding: 10px; text-align: center; position: relative; bottom: 0; width: 100%; animation: fadeIn 1.5s ease-out; } .falling-squares { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; } .square { position: absolute; width: 20px; height: 20px; background-color: #ff4d88; animation: fall 10s infinite linear; opacity: 0.6; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } } @keyframes borderGlow { 0% { border-color: #ff4d88; } 50% { border-color: #ff0033; } 100% { border-color: #ff4d88; } } @keyframes fall { 0% { top: -10%; left: calc(100% * var(--random-x)); } 100% { top: 110%; left: calc(100% * var(--random-x)); } } </style> </head> <body> <!-- Falling Squares --> <div class="falling-squares"> <!-- Generate 50 squares --> <div class="square" style="--random-x: 0.1;"></div> <div class="square" style="--random-x: 0.2;"></div> <div class="square" style="--random-x: 0.3;"></div> <div class="square" style="--random-x: 0.4;"></div> <div class="square" style="--random-x: 0.5;"></div> <div class="square" style="--random-x: 0.6;"></div> <div class="square" style="--random-x: 0.7;"></div> <div class="square" style="--random-x: 0.8;"></div> <div class="square" style="--random-x: 0.9;"></div> <div class="square" style="--random-x: 1.0;"></div> <!-- Add more squares as needed --> </div> <!-- Header Section --> <header> <h1>Xenolusion</h1> <nav> <a href="index.html">Home</a> <a href="games.html">Games</a> <a href="news.html">News</a> <a href="socials.html">Socials</a> </nav> </header> <!-- Main Section --> <section id="projects" class="container"> <h2 class="main-title">Welcome to Xenolusion</h2> <div class="video-container"> <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> </div> </section> <!-- Footer Section --> <footer> <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p> </footer> </body> </html>
+ChatGPT said:
+ChatGPT
+
+I've updated your HTML layout to match the provided design while changing "Contact" to "Socials." Here is the modified code:
+
+It looks like you've uploaded an image. How can I assist you with it? Would you like me to analyze it or incorporate it into your HTML layout?
+You said:
+add in the empty pink square this yotube video https://www.youtube.com/watch?v=_YkJ9untggA
+ChatGPT said:
+ChatGPT
+
+I've embedded the YouTube video into the empty pink square. Let me know if you need any further modifications! 🚀
+
+
+ChatGPT can make mistakes. Check important info.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +98,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body {
+            background-color: #000;
+            color: #ff00ff;
             background-color: #121212;
             color: #f0f0f0;
             font-family: 'Press Start 2P', cursive;
@@ -14,10 +107,16 @@
             padding: 0;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            text-align: center;
             min-height: 100vh;
             overflow-x: hidden;
         }
         header {
+            width: 100%;
+            background-color: #000;
+            border-bottom: 2px solid #ff00ff;
+            padding: 10px;
             background-color: #1e1e1e;
             padding: 20px;
             display: flex;
@@ -26,22 +125,31 @@
             animation: fadeIn 1.5s ease-out;
         }
         header h1 {
+            margin-left: 10px;
             margin: 0;
         }
         nav {
             display: flex;
+            gap: 10px;
+            margin-right: 10px;
             gap: 20px;
         }
         nav a {
+            color: #ff00ff;
             color: #ff4d88;
             text-decoration: none;
+            border: 1px solid #ff00ff;
+            padding: 5px 10px;
             border-bottom: 2px solid transparent;
             padding-bottom: 5px;
             transition: border-bottom 0.3s;
         }
         nav a:hover {
+            background-color: #ff00ff;
+            color: #000;
             border-bottom: 2px solid #ff4d88;
         }
+        .content {
         .container {
             padding: 40px;
             text-align: center;
@@ -59,230 +167,22 @@
         .video-container {
             margin-top: 40px;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            position: relative;
-            border: 5px solid #ff4d88;
-            border-radius: 10px;
-            padding: 10px;
-            animation: borderGlow 2s infinite;
-        }
-        .video-container iframe {
-            width: 600px;
-            height: 600px;
-            border-radius: 10px;
-            transition: transform 0.3s;
-        }
-        .video-container iframe:hover {
-            transform: scale(1.05);
-        }
-        .empty-pink-square {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            position: relative;
-            border: 5px solid #ff4d88;
-            border-radius: 10px;
-            padding: 10px;
-            animation: borderGlow 2s infinite;
-            width: 640px;
-            height: 360px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        footer {
-            background-color: #1e1e1e;
-            padding: 10px;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            animation: fadeIn 1.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        @keyframes borderGlow {
-            0% { border-color: #ff4d88; }
-            50% { border-color: #ff0033; }
-            100% { border-color: #ff4d88; }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Xenolusion</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="games.html">Games</a>
-            <a href="news.html">News</a>
-            <a href="socials.html">Socials</a>
-        </nav>
-    </header>
-    <section id="projects" class="container">
-        <h2 class="main-title">Welcome to Xenolusion</h2>
-        <div class="video-container">
-            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-        <div class="empty-pink-square">
-            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-    </section>
-    <footer>
-        <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p>
-    </footer>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xenolusion</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        body {
-            background-color: #121212;
-            color: #f0f0f0;
-            font-family: 'Press Start 2P', cursive;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        header {
-            background-color: #1e1e1e;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: fadeIn 1.5s ease-out;
-        }
-        header h1 {
-            margin: 0;
-        }
-        nav {
-            display: flex;
+            margin-top: 50px;
             gap: 20px;
-        }
-        nav a {
-            color: #ff4d88;
-            text-decoration: none;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 5px;
-            transition: border-bottom 0.3s;
-        }
-        nav a:hover {
-            border-bottom: 2px solid #ff4d88;
-        }
-        .container {
-            padding: 40px;
-            text-align: center;
-            flex: 1;
-            animation: fadeInUp 2s ease-out;
-            position: relative;
-            z-index: 1;
-        }
-        .main-title {
-            font-size: 3em;
-            margin: 0;
-            color: #ff4d88;
-            animation: pulse 2s infinite;
-        }
-        .video-container {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
+            width: 80%;
             position: relative;
             border: 5px solid #ff4d88;
             border-radius: 10px;
             padding: 10px;
             animation: borderGlow 2s infinite;
         }
+        .info-box {
+            border: 2px solid #ff00ff;
+            padding: 20px;
+            width: 300px;
         .video-container iframe {
             width: 600px;
             height: 600px;
             border-radius: 10px;
-            transition: transform 0.3s;
-        }
-        .video-container iframe:hover {
-            transform: scale(1.05);
-        }
-        .empty-pink-square {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            position: relative;
-            border: 5px solid #ff4d88;
-            border-radius: 10px;
-            padding: 10px;
-            animation: borderGlow 2s infinite;
-            width: 640px;
-            height: 360px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        footer {
-            background-color: #1e1e1e;
-            padding: 10px;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            animation: fadeIn 1.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        @keyframes borderGlow {
-            0% { border-color: #ff4d88; }
-            50% { border-color: #ff0033; }
-            100% { border-color: #ff4d88; }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Xenolusion</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="games.html">Games</a>
-            <a href="news.html">News</a>
-            <a href="socials.html">Socials</a>
-        </nav>
-    </header>
-    <section id="projects" class="container">
-        <h2 class="main-title">Welcome to Xenolusion</h2>
-        <div class="video-container">
-            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-        <div class="empty-pink-square">
-            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-    </section>
-    <footer>
-        <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p>
-    </footer>
-</body>
-</html>
