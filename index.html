@@ -7,171 +7,103 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body {
-            background-color: #121212;
-            color: #f0f0f0;
+            background-color: #000;
+            color: #ff00ff;
             font-family: 'Press Start 2P', cursive;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
+            align-items: center;
+            text-align: center;
         }
         header {
-            background-color: #1e1e1e;
-            padding: 20px;
+            width: 100%;
+            background-color: #000;
+            border-bottom: 2px solid #ff00ff;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: fadeIn 1.5s ease-out;
         }
         header h1 {
-            margin: 0;
+            margin-left: 10px;
         }
         nav {
             display: flex;
-            gap: 20px;
+            gap: 10px;
+            margin-right: 10px;
         }
         nav a {
-            color: #ff4d88;
+            color: #ff00ff;
             text-decoration: none;
-            border-bottom: 2px solid transparent;
-            padding-bottom: 5px;
-            transition: border-bottom 0.3s;
+            border: 1px solid #ff00ff;
+            padding: 5px 10px;
         }
         nav a:hover {
-            border-bottom: 2px solid #ff4d88;
+            background-color: #ff00ff;
+            color: #000;
         }
-        .container {
-            padding: 40px;
-            text-align: center;
-            flex: 1;
-            animation: fadeInUp 2s ease-out;
-            position: relative;
-            z-index: 1;
-        }
-        .main-title {
-            font-size: 3em;
-            margin: 0;
-            color: #ff4d88;
-            animation: pulse 2s infinite;
-        }
-        .video-container {
-            margin-top: 40px;
+        .content {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            position: relative;
-            border: 5px solid #ff4d88;
-            border-radius: 10px;
-            padding: 10px;
-            animation: borderGlow 2s infinite;
+            margin-top: 50px;
+            gap: 20px;
+            width: 80%;
         }
-        .video-container iframe {
-            width: 600px;
-            height: 600px;
-            border-radius: 10px;
-            transition: transform 0.3s;
+        .info-box {
+            border: 2px solid #ff00ff;
+            padding: 20px;
+            width: 300px;
         }
-        .video-container iframe:hover {
-            transform: scale(1.05);
+        .video-box {
+            border: 2px solid #ff00ff;
+            padding: 20px;
         }
-        footer {
-            background-color: #1e1e1e;
-            padding: 10px;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            animation: fadeIn 1.5s ease-out;
+        iframe {
+            width: 560px;
+            height: 315px;
         }
-        .falling-squares {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            overflow: hidden;
+        .buttons {
+            margin-top: 10px;
         }
-        .square {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: #ff4d88;
-            animation: fall 10s infinite linear;
-            opacity: 0.6;
+        .buttons a {
+            color: #ff00ff;
+            text-decoration: none;
+            border: 1px solid #ff00ff;
+            padding: 5px 10px;
+            margin-right: 5px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        @keyframes borderGlow {
-            0% { border-color: #ff4d88; }
-            50% { border-color: #ff0033; }
-            100% { border-color: #ff4d88; }
-        }
-        @keyframes fall {
-            0% {
-                top: -10%;
-                left: calc(100% * var(--random-x));
-            }
-            100% {
-                top: 110%;
-                left: calc(100% * var(--random-x));
-            }
+        .buttons a:hover {
+            background-color: #ff00ff;
+            color: #000;
         }
     </style>
 </head>
 <body>
-
-    <!-- Falling Squares -->
-    <div class="falling-squares">
-        <!-- Generate 50 squares -->
-        <div class="square" style="--random-x: 0.1;"></div>
-        <div class="square" style="--random-x: 0.2;"></div>
-        <div class="square" style="--random-x: 0.3;"></div>
-        <div class="square" style="--random-x: 0.4;"></div>
-        <div class="square" style="--random-x: 0.5;"></div>
-        <div class="square" style="--random-x: 0.6;"></div>
-        <div class="square" style="--random-x: 0.7;"></div>
-        <div class="square" style="--random-x: 0.8;"></div>
-        <div class="square" style="--random-x: 0.9;"></div>
-        <div class="square" style="--random-x: 1.0;"></div>
-        <!-- Add more squares as needed -->
-    </div>
-
-    <!-- Header Section -->
     <header>
-        <h1>Xenolusion</h1>
+        <h1>XENOLUSION</h1>
         <nav>
-            <a href="index.html">Home</a>
-            <a href="games.html">Games</a>
-            <a href="news.html">News</a>
-            <a href="socials.html">Socials</a>
+            <a href="#">Home</a>
+            <a href="#">Games</a>
+            <a href="#">News</a>
+            <a href="#">Socials</a>
         </nav>
     </header>
-
-    <!-- Main Section -->
-    <section id="projects" class="container">
-        <h2 class="main-title">Welcome to Xenolusion</h2>
-        <div class="video-container">
-            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    
+    <div class="content">
+        <div class="info-box">
+            <h2>XENOLUSION GAMES</h2>
+            <p>Creating Classic Gaming Experiences Since 1995</p>
+            <div class="buttons">
+                <a href="#">View Games</a>
+                <a href="#">Donate</a>
+            </div>
         </div>
-    </section>
-
-    <!-- Footer Section -->
-    <footer>
-        <p>&copy; 2025 Xenolusion | All Rights Reserved | <a href="privacy.html">Privacy Policy</a></p>
-    </footer>
-
+        <div class="video-box">
+            <iframe src="https://www.youtube.com/embed/_YkJ9untggA" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
 </body>
 </html>
