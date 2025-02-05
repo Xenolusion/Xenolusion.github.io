@@ -16,6 +16,10 @@
             flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden;
+            background-image: url('https://path-to-your-background-image.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
         header {
             background-color: #1e1e1e;
@@ -33,14 +37,14 @@
             gap: 20px;
         }
         nav a {
-            color: #f0f0f0;
+            color: #ff4d88;
             text-decoration: none;
             border-bottom: 2px solid transparent;
             padding-bottom: 5px;
             transition: border-bottom 0.3s;
         }
         nav a:hover {
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid #ff4d88;
         }
         .container {
             padding: 40px;
@@ -51,17 +55,22 @@
         .main-title {
             font-size: 3em;
             margin: 0;
-            color: #f0a500;
+            color: #ff4d88;
             animation: pulse 2s infinite;
         }
         .video-container {
             margin-top: 40px;
             display: flex;
             justify-content: center;
+            position: relative;
+            border: 5px solid #ff4d88;
+            border-radius: 10px;
+            padding: 10px;
+            animation: borderGlow 2s infinite;
         }
         .video-container iframe {
-            width: 500px;
-            height: 500px;
+            width: 600px;
+            height: 600px;
             border-radius: 10px;
             transition: transform 0.3s;
         }
@@ -89,6 +98,11 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+        @keyframes borderGlow {
+            0% { border-color: #ff4d88; }
+            50% { border-color: #ff0033; }
+            100% { border-color: #ff4d88; }
         }
     </style>
 </head>
