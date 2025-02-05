@@ -15,6 +15,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         header {
             background-color: #1e1e1e;
@@ -22,6 +23,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            animation: fadeIn 1.5s ease-out;
         }
         header h1 {
             margin: 0;
@@ -35,6 +37,7 @@
             text-decoration: none;
             border-bottom: 2px solid transparent;
             padding-bottom: 5px;
+            transition: border-bottom 0.3s;
         }
         nav a:hover {
             border-bottom: 2px solid #f0f0f0;
@@ -43,23 +46,49 @@
             padding: 40px;
             text-align: center;
             flex: 1;
+            animation: fadeInUp 2s ease-out;
         }
         .main-title {
             font-size: 3em;
             margin: 0;
             color: #f0a500;
+            animation: pulse 2s infinite;
         }
         .video-container {
             margin-top: 40px;
+            display: flex;
+            justify-content: center;
         }
         .video-container iframe {
-            width: 100%;
+            width: 500px;
             height: 500px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .video-container iframe:hover {
+            transform: scale(1.05);
         }
         footer {
             background-color: #1e1e1e;
             padding: 10px;
             text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            animation: fadeIn 1.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
