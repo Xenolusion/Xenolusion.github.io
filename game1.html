@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Click the Square Game</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    #gameCanvas {
+      border: 2px solid #333;
+      background: #fff;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Click the Square Game</h1>
+  <p>Score: <span id="score">0</span></p>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+  <script>
+    // Get canvas and context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Game variables
+    let score = 0;
+    const squareSize = 50;
+    let squareX, squareY;
+
+    // Function to draw the square at a random position
+    function drawSquare() {
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Generate random coordinates ensuring the square stays within the canvas bounds
+      squareX = Math.random() * (canvas.width - squareSize);
+      squareY = Math.random() * (canvas.height - squareSize);
+
+      // Draw the square
+      ctx.fillStyle = 'red';
+      ctx.fillRect(squareX, squareY, squareSize, squareSize);
+    }
+
+    // Event listener for clicks on the canvas
+    canvas.addEventListener('click', function(event) {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+
+      // Check if the click is within the boundaries of the square
+      if (
+        clickX >= squareX &&
+        clickX <= squareX + squareSize &&
+        clickY >= squareY &&
+        clickY <= squareY + squareSize
+      ) {
+        score++;
+        document.getElementById('score').innerText = score;
+        drawSquare();
+      }
+    });
+
+    // Draw the initial square when the page loads
+    drawSquare();
+  </script>
+</body>
+</html>
