@@ -229,13 +229,11 @@
       const rotations = Math.floor(Math.random() * 3) + 3;
 
       // Calculate the final angle for the wheel.
-      // This adds several full spins plus the offset for the winning number.
       const finalAngle = currentRotation + rotations * 360 + spinResult * anglePerNumber;
       currentRotation = finalAngle; // Update the cumulative rotation
 
       // Animate the wheel rotation using CSS transform
-      document.getElementById("rouletteWheel").style.transform =
-        "rotate(" + finalAngle + "deg)";
+      document.getElementById("rouletteWheel").style.transform = "rotate(" + finalAngle + "deg)";
 
       // Display the result message
       let resultText = "The wheel landed on " + spinResult + ". ";
@@ -246,6 +244,29 @@
       }
       document.getElementById("result").innerText = resultText;
     }
+
+    // Secret Easter Egg: Konami Code
+    // The Konami code: Up, Up, Down, Down, Left, Right, Left, Right, B, A
+    const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let secretCodePosition = 0;
+
+    document.addEventListener('keydown', function(e) {
+      const key = e.key;
+      // Check if the pressed key matches the expected key in the secret code sequence
+      if (key === secretCode[secretCodePosition] || key.toLowerCase() === secretCode[secretCodePosition]) {
+        secretCodePosition++;
+        if (secretCodePosition === secretCode.length) {
+          // Sequence complete: Reveal the secret link
+          document.getElementById('secretGameLink').style.display = 'block';
+          // Optionally, you can auto-redirect to game1.html by uncommenting the line below:
+          // window.location.href = "game1.html";
+          secretCodePosition = 0;
+          alert("Secret game unlocked! Click the 'Secret Game' link to play.");
+        }
+      } else {
+        secretCodePosition = 0;
+      }
+    });
   </script>
 
   <!-- Footer Section -->
