@@ -3,58 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Click the Square Game</title>
+  <title>Secret Game: Click Challenge</title>
   <style>
     body {
-      text-align: center;
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background: #222;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      margin-top: 20px;
     }
     #gameCanvas {
-      border: 2px solid #333;
-      background: #fff;
+      border: 2px solid #fff;
+      background: #000;
       margin-top: 20px;
+    }
+    #info {
+      margin-top: 20px;
+    }
+    #startButton, #restartButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #ff00ff;
+      color: #000;
+      border: none;
+      font-family: 'Press Start 2P', cursive;
+    }
+    #startButton:hover, #restartButton:hover {
+      background-color: #000;
+      color: #ff00ff;
+      border: 2px solid #ff00ff;
     }
   </style>
 </head>
 <body>
-  <h1>Click the Square Game</h1>
-  <p>Score: <span id="score">0</span></p>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <h1>Secret Game: Click Challenge</h1>
+  <canvas id="gameCanvas" width="500" height="500"></canvas>
+  <div id="info">
+    <p>Score: <span id="score">0</span></p>
+    <p>Time Left: <span id="time">30</span>s</p>
+  </div>
+  <button id="startButton">Start Game</button>
+  <button id="restartButton" style="display: none;">Restart Game</button>
 
   <script>
-    // Get canvas and context
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const startButton = document.getElementById('startButton');
+    const restartButton = document.getElementById('restartButton');
 
-    // Game variables
     let score = 0;
-    const squareSize = 50;
+    let timeLeft = 30;
+    let gameInterval;
+    let timerInterval;
+    let squareSize = 50;
     let squareX, squareY;
+    let gameRunning = false;
+    let secretBonusUnlocked = false;
 
-    // Function to draw the square at a random position
+    // Function to draw the square at a new random position
     function drawSquare() {
-      // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Generate random coordinates ensuring the square stays within the canvas bounds
+      // Ensure the square is fully within the canvas
       squareX = Math.random() * (canvas.width - squareSize);
       squareY = Math.random() * (canvas.height - squareSize);
-
-      // Draw the square
-      ctx.fillStyle = 'red';
+      ctx.fillStyle = '#ff0000';
       ctx.fillRect(squareX, squareY, squareSize, squareSize);
     }
 
-    // Event listener for clicks on the canvas
+    function updateScore() {
+      scoreEl.innerText = score;
+    }
+
+    function updateTime() {
+      timeEl.innerText = timeLeft;
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      clearInterval(gameInterval);
+      gameRunning = false;
+      alert('Time up! Your final score is: ' + score);
+      restartButton.style.display = 'block';
+    }
+
+    function gameLoop() {
+      // Adjust square size to increase difficulty based on score
+      if (score >= 20) {
+        squareSize = 30;
+      } else if (score >= 10) {
+        squareSize = 40;
+      }
+      drawSquare();
+    }
+
+    // Click event to check if the user clicked inside the square
     canvas.addEventListener('click', function(event) {
+      if (!gameRunning) return;
       const rect = canvas.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const clickY = event.clientY - rect.top;
-
-      // Check if the click is within the boundaries of the square
       if (
         clickX >= squareX &&
         clickX <= squareX + squareSize &&
@@ -62,13 +119,62 @@
         clickY <= squareY + squareSize
       ) {
         score++;
-        document.getElementById('score').innerText = score;
+        updateScore();
+        // Secret bonus: when the score reaches 25, display a bonus message.
+        if (score >= 25 && !secretBonusUnlocked) {
+          secretBonusUnlocked = true;
+          alert("Secret Bonus Unlocked! The square shrinks faster!");
+          // For extra challenge, you could reduce the square size further here if desired.
+        }
         drawSquare();
       }
     });
 
-    // Draw the initial square when the page loads
-    drawSquare();
+    // Start the game
+    startButton.addEventListener('click', function() {
+      if (!gameRunning) {
+        score = 0;
+        timeLeft = 30;
+        secretBonusUnlocked = false;
+        squareSize = 50;
+        updateScore();
+        updateTime();
+        gameRunning = true;
+        startButton.style.display = 'none';
+        restartButton.style.display = 'none';
+        drawSquare();
+        timerInterval = setInterval(function() {
+          timeLeft--;
+          updateTime();
+          if (timeLeft <= 0) {
+            endGame();
+          }
+        }, 1000);
+        gameInterval = setInterval(gameLoop, 1000);
+      }
+    });
+
+    // Restart the game
+    restartButton.addEventListener('click', function() {
+      score = 0;
+      timeLeft = 30;
+      secretBonusUnlocked = false;
+      squareSize = 50;
+      updateScore();
+      updateTime();
+      gameRunning = true;
+      restartButton.style.display = 'none';
+      startButton.style.display = 'none';
+      drawSquare();
+      timerInterval = setInterval(function() {
+        timeLeft--;
+        updateTime();
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+      gameInterval = setInterval(gameLoop, 1000);
+    });
   </script>
 </body>
 </html>
