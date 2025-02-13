@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Game: Click Challenge</title>
+  <title>Secret Game: Click Challenge Enhanced</title>
   <style>
     body {
       margin: 0;
@@ -25,6 +25,7 @@
     }
     #info {
       margin-top: 20px;
+      text-align: center;
     }
     #startButton, #restartButton {
       margin-top: 20px;
@@ -44,11 +45,16 @@
   </style>
 </head>
 <body>
-  <h1>Secret Game: Click Challenge</h1>
+  <h1>Secret Game: Click Challenge Enhanced</h1>
   <canvas id="gameCanvas" width="500" height="500"></canvas>
   <div id="info">
     <p>Score: <span id="score">0</span></p>
     <p>Time Left: <span id="time">30</span>s</p>
+    <p>
+      Click the red square for points.<br>
+      The green circle gives bonus time (+5s) and an extra point.<br>
+      Avoid the bomb (black circle with red border) or it's game over!
+    </p>
   </div>
   <button id="startButton">Start Game</button>
   <button id="restartButton" style="display: none;">Restart Game</button>
@@ -63,86 +69,171 @@
 
     let score = 0;
     let timeLeft = 30;
-    let gameInterval;
-    let timerInterval;
-    let squareSize = 50;
-    let squareX, squareY;
     let gameRunning = false;
-    let secretBonusUnlocked = false;
+    let timerInterval;
+    let spawnInterval;
 
-    // Function to draw the square at a new random position
-    function drawSquare() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Ensure the square is fully within the canvas
-      squareX = Math.random() * (canvas.width - squareSize);
-      squareY = Math.random() * (canvas.height - squareSize);
-      ctx.fillStyle = '#ff0000';
-      ctx.fillRect(squareX, squareY, squareSize, squareSize);
-    }
+    // Item Variables
+    let targetSize = 50;  // Red square (target) size
+    let targetX, targetY;
+
+    let bonusActive = false;
+    let bonusSize = 30;   // Bonus item (green circle) size
+    let bonusX, bonusY;
+
+    let bombActive = false;
+    let bombSize = 30;    // Bomb (black circle) size
+    let bombX, bombY;
 
     function updateScore() {
       scoreEl.innerText = score;
     }
-
     function updateTime() {
       timeEl.innerText = timeLeft;
     }
 
-    function endGame() {
+    // Spawn items with new random positions and random chance for bonus and bomb.
+    function spawnItems() {
+      // Adjust target size based on current score for increasing difficulty.
+      if (score >= 20) {
+        targetSize = 30;
+      } else if (score >= 10) {
+        targetSize = 40;
+      } else {
+        targetSize = 50;
+      }
+      
+      // Spawn target (red square)
+      targetX = Math.random() * (canvas.width - targetSize);
+      targetY = Math.random() * (canvas.height - targetSize);
+      
+      // Bonus appearance: 30% chance.
+      bonusActive = (Math.random() < 0.3);
+      if (bonusActive) {
+        bonusX = Math.random() * (canvas.width - bonusSize);
+        bonusY = Math.random() * (canvas.height - bonusSize);
+      }
+      
+      // Bomb appearance: 20% chance.
+      bombActive = (Math.random() < 0.2);
+      if (bombActive) {
+        bombX = Math.random() * (canvas.width - bombSize);
+        bombY = Math.random() * (canvas.height - bombSize);
+      }
+      
+      drawItems();
+    }
+
+    function drawItems() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw target: red square.
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(targetX, targetY, targetSize, targetSize);
+      
+      // Draw bonus if active: green circle.
+      if (bonusActive) {
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(bonusX + bonusSize/2, bonusY + bonusSize/2, bonusSize/2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Draw bomb if active: black circle with red border.
+      if (bombActive) {
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(bombX + bombSize/2, bombY + bombSize/2, bombSize/2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // Ends the game with a custom message (e.g., if a bomb is clicked).
+    function endGameWithMessage(msg) {
       clearInterval(timerInterval);
-      clearInterval(gameInterval);
+      clearInterval(spawnInterval);
       gameRunning = false;
-      alert('Time up! Your final score is: ' + score);
+      alert(msg + " Final Score: " + score);
       restartButton.style.display = 'block';
     }
 
-    function gameLoop() {
-      // Adjust square size to increase difficulty based on score
-      if (score >= 20) {
-        squareSize = 30;
-      } else if (score >= 10) {
-        squareSize = 40;
-      }
-      drawSquare();
+    // Ends the game when the timer reaches zero.
+    function endGame() {
+      clearInterval(timerInterval);
+      clearInterval(spawnInterval);
+      gameRunning = false;
+      alert("Time's up! Your final score is: " + score);
+      restartButton.style.display = 'block';
     }
 
-    // Click event to check if the user clicked inside the square
+    // Handle clicks on the canvas.
     canvas.addEventListener('click', function(event) {
       if (!gameRunning) return;
       const rect = canvas.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const clickY = event.clientY - rect.top;
+      
+      let hitSomething = false;
+      
+      // Check bomb first: if clicked, game over immediately.
+      if (bombActive) {
+        const bombCenterX = bombX + bombSize/2;
+        const bombCenterY = bombY + bombSize/2;
+        const distBomb = Math.sqrt((clickX - bombCenterX) ** 2 + (clickY - bombCenterY) ** 2);
+        if (distBomb < bombSize/2) {
+          hitSomething = true;
+          endGameWithMessage("Boom! You clicked a bomb!");
+          return;
+        }
+      }
+      
+      // Check bonus: if clicked, add bonus time and score.
+      if (bonusActive) {
+        const bonusCenterX = bonusX + bonusSize/2;
+        const bonusCenterY = bonusY + bonusSize/2;
+        const distBonus = Math.sqrt((clickX - bonusCenterX) ** 2 + (clickY - bonusCenterY) ** 2);
+        if (distBonus < bonusSize/2) {
+          hitSomething = true;
+          score++;
+          timeLeft += 5; // Bonus: add 5 seconds.
+          updateScore();
+          updateTime();
+        }
+      }
+      
+      // Check target (red square) for points.
       if (
-        clickX >= squareX &&
-        clickX <= squareX + squareSize &&
-        clickY >= squareY &&
-        clickY <= squareY + squareSize
+        clickX >= targetX &&
+        clickX <= targetX + targetSize &&
+        clickY >= targetY &&
+        clickY <= targetY + targetSize
       ) {
+        hitSomething = true;
         score++;
         updateScore();
-        // Secret bonus: when the score reaches 25, display a bonus message.
-        if (score >= 25 && !secretBonusUnlocked) {
-          secretBonusUnlocked = true;
-          alert("Secret Bonus Unlocked! The square shrinks faster!");
-          // For extra challenge, you could reduce the square size further here if desired.
-        }
-        drawSquare();
+      }
+      
+      // If any valid item was hit, immediately respawn items.
+      if (hitSomething) {
+        spawnItems();
       }
     });
 
-    // Start the game
+    // Start the game.
     startButton.addEventListener('click', function() {
       if (!gameRunning) {
         score = 0;
         timeLeft = 30;
-        secretBonusUnlocked = false;
-        squareSize = 50;
         updateScore();
         updateTime();
         gameRunning = true;
         startButton.style.display = 'none';
         restartButton.style.display = 'none';
-        drawSquare();
+        spawnItems();
+        // Countdown timer.
         timerInterval = setInterval(function() {
           timeLeft--;
           updateTime();
@@ -150,30 +241,29 @@
             endGame();
           }
         }, 1000);
-        gameInterval = setInterval(gameLoop, 1000);
+        // Respawn items every second.
+        spawnInterval = setInterval(spawnItems, 1000);
       }
     });
 
-    // Restart the game
+    // Restart the game.
     restartButton.addEventListener('click', function() {
       score = 0;
       timeLeft = 30;
-      secretBonusUnlocked = false;
-      squareSize = 50;
       updateScore();
       updateTime();
       gameRunning = true;
       restartButton.style.display = 'none';
       startButton.style.display = 'none';
-      drawSquare();
+      spawnItems();
       timerInterval = setInterval(function() {
-        timeLeft--;
-        updateTime();
-        if (timeLeft <= 0) {
-          endGame();
-        }
-      }, 1000);
-      gameInterval = setInterval(gameLoop, 1000);
+          timeLeft--;
+          updateTime();
+          if (timeLeft <= 0) {
+            endGame();
+          }
+        }, 1000);
+      spawnInterval = setInterval(spawnItems, 1000);
     });
   </script>
 </body>
