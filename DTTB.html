@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DONT TOUCH THE BOTTOM!</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Arial', sans-serif;
+        }
+        #game {
+            width: 1200px;
+            height: 600px;
+            position: relative;
+            margin: 50px auto;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        #player {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            position: absolute;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.3s ease;
+        }
+        .platform {
+            position: absolute;
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            height: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        .coin {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: bounce 0.5s infinite alternate;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .coin::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 5px;
+            height: 5px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+        #shop-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+
+        #shop-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        #shop-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #shop-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Add a modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        #shop-modal h2 {
+            text-align: center;
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .shop-section {
+            background-color: #f8f8f8;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .shop-section h3 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .shop-item {
+            background-color: white;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item h3 {
+            font-size: 18px;
+            margin: 0;
+            color: #333;
+        }
+
+        .shop-item p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .shop-item button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .cosmetic-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+        }
+
+        .color-option, .hat-option {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .color-option:hover, .hat-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .color-option.equipped, .hat-option.equipped {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(74, 175, 80, 0.5);
+        }
+
+        .cosmetic-price {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        #shop-modal button[onclick="closeShop()"] {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 30px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #shop-modal button[onclick="closeShop()"]:hover {
+            background-color: #c0392b;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: fadeOut 0.5s forwards;
+            box-shadow: 0 0 5px rgba(255,255,255,0.3);
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+        
+        #warning {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 48px;
+            color: #ff0000;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background-color: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #retry-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shop-section {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 20px;
+        }
+
+        .shop-section h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .cosmetic-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 10px;
+        }
+
+        .color-option, .hat-option {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .color-option:hover, .hat-option:hover {
+            transform: scale(1.1);
+        }
+
+        .hat-preview {
+            font-size: 30px;
+            pointer-events: none;
+        }
+
+        .locked {
+            position: relative;
+            opacity: 0.5;
+        }
+
+        .locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .player-hat {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            pointer-events: none;
+        }
+
+        .cosmetic-price {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        #coins {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .lava-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(0deg, rgba(255, 69, 0, 0.8), rgba(255, 107, 0, 0.8));
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: bubble 2s ease-in infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bubble {
+            0% {
+                transform: translateY(50px) scale(0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-60px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Add new styles */
+        .fireball {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #fff, #ffbb00, #ff4400);
+            border-radius: 50%;
+            filter: blur(2px);
+            animation: fireballPulse 0.5s infinite alternate;
+            box-shadow: 0 0 20px #ff4400;
+        }
+
+        .fireball::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -20px;
+            width: 20px;
+            height: 30px;
+            background: linear-gradient(to left, #ff4400, transparent);
+            filter: blur(5px);
+        }
+
+        @keyframes fireballPulse {
+            from { transform: scale(1); filter: brightness(1); }
+            to { transform: scale(1.1); filter: brightness(1.2); }
+        }
+
+        /* Rainbow color animation for the new rainbow skin */
+        @keyframes rainbow {
+            0% { background: #ff0000; }
+            17% { background: #ff8800; }
+            33% { background: #ffff00; }
+            50% { background: #00ff00; }
+            67% { background: #0088ff; }
+            83% { background: #8800ff; }
+            100% { background: #ff0000; }
+        }
+
+        .rainbow-color {
+            animation: rainbow 5s linear infinite;
+        }
+        .controls-info {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 80%;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.key {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 12px;
+}
+.volume-control {
+    position: absolute;
+    top: 20px;
+    right: 100px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.volume-control label {
+    color: white;
+    cursor: pointer;
+}
+
+.volume-control input {
+    width: 100px;
+    cursor: pointer;
+}
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="warning">DON'T TOUCH THE BOTTOM!</div>
+        <div id="game-over">
+            GAME OVER
+            <br>
+            <button id="retry-button" onclick="restartGame()">Retry</button>
+        </div>
+        <div class="lava-container" id="lava"></div>
+        <div id="player"></div>
+        <div id="coins">Coins: 0</div>
+        <button id="shop-button">Shop</button>
+        <div id="shop-modal">
+            <h2>Shop</h2>
+            <div class="shop-section">
+                <h3>Upgrades</h3>
+                <div class="shop-item">
+                    <h3>Speed Upgrade (Level <span id="speed-level">1</span>)</h3>
+                    <p>Cost: <span id="speed-cost">50</span> coins</p>
+                    <button onclick="buyUpgrade('speed')">Buy</button>
+                </div>
+                <div class="shop-item">
+                    <h3>Jump Power (Level <span id="jumpPower-level">1</span>)</h3>
+                    <p>Cost: <span id="jumpPower-cost">75</span> coins</p>
+                    <button onclick="buyUpgrade('jumpPower')">Buy</button>
+                </div>
+                <div class="shop-item">
+                    <h3>Jetpack (Level <span id="jetpack-level">0</span>)</h3>
+                    <p>Cost: <span id="jetpack-cost">1000</span> coins</p>
+                    <button onclick="buyUpgrade('jetpack')">Buy</button>
+                </div>
+                <div class="shop-item">
+                    <h3>Time Slow (Level <span id="timeSlow-level">0</span>)</h3>
+                    <p>Cost: <span id="timeSlow-cost">2000</span> coins</p>
+                    <button onclick="buyUpgrade('timeSlow')">Buy</button>
+                </div>
+                <div class="shop-item">
+                    <h3>Coin Magnet (Level <span id="coinMagnet-level">0</span>)</h3>
+                    <p>Cost: <span id="coinMagnet-cost">3000</span> coins</p>
+                    <button onclick="buyUpgrade('coinMagnet')">Buy</button>
+                </div>
+                <div class="shop-item">
+                    <h3>Shield (Level <span id="shield-level">0</span>)</h3>
+                    <p>Cost: <span id="shield-cost">5000</span> coins</p>
+                    <button onclick="buyUpgrade('shield')">Buy</button>
+                </div>
+            </div>
+            <div class="shop-section">
+                <h3>Colors</h3>
+                <div class="cosmetic-options" id="color-options"></div>
+            </div>
+            <div class="shop-section">
+                <h3>Hats</h3>
+                <div class="cosmetic-options" id="hat-options"></div>
+            </div>
+            <button onclick="closeShop()">Close</button>
+        </div>
+        <!-- Add this to your game div -->
+        <div class="volume-control">
+            <label for="volume">🔊</label>
+            <input type="range" id="volume" min="0" max="100" value="50">
+        </div>
+    </div>
+    <div class="controls-info">
+        <div class="control-item">
+            <span class="key">←</span>
+            <span class="key">→</span>
+            <span>Move</span>
+        </div>
+        <div class="control-item">
+            <span class="key">↑</span>
+            <span>Jump</span>
+        </div>
+        <div class="control-item">
+            <span class="key">↓</span>
+            <span>Drop Through</span>
+        </div>
+        <div class="control-item">
+            <span class="key">SPACE</span>
+            <span>Jetpack</span>
+        </div>
+        <div class="control-item">
+            <span class="key">T</span>
+            <span>Time Slow</span>
+        </div>
+        <div class="control-item">
+            <span class="key">S</span>
+            <span>Shield</span>
+        </div>
+    </div>
+    <div class="modal-overlay"></div>
+
+    <script>
+        // Add this at the top of your script
+        const AUDIO = {
+            jump: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+            coin: new Audio('https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3'),
+            death: new Audio('https://assets.mixkit.co/active_storage/sfx/2658/2658-preview.mp3'),
+            powerup: new Audio('https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3'),
+            shield: new Audio('https://assets.mixkit.co/active_storage/sfx/2153/2153-preview.mp3'),
+            timeSlow: new Audio('https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3'),
+            jetpack: new Audio('https://assets.mixkit.co/active_storage/sfx/1791/1791-preview.mp3'),
+            fireball: new Audio('https://assets.mixkit.co/active_storage/sfx/2790/2790-preview.mp3'),
+        };
+
+        // Add sound control function
+        function playSound(soundName, volume = 1) {
+            const sound = AUDIO[soundName];
+            sound.volume = volume;
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("Audio play failed:", e));
+        }
+
+        // Update the getSpawnPosition function to match the spawn platform height
+        function getSpawnPosition() {
+            // Platform is at y:150, player height is 30px
+            return {
+                x: 50,
+                y: 120  // Platform y (150) minus player height (30)
+            };
+        }
+
+        // Add collision state to player object
+        const player = {
+            element: document.getElementById('player'),
+            x: getSpawnPosition().x,
+            y: getSpawnPosition().y,
+            velocityY: 0,
+            speed: 5,
+            jumping: false,
+            canCollide: true  // Add this new property
+        };
+
+        // Add pause state to gameState
+        const gameState = {
+            coins: 0, // renamed from score
+            maxCoins: 5,
+            currentCoins: 0,
+            spawnInterval: 3000,
+            isGameOver: false,
+            equipped: {
+                color: '#ff4444',
+                hat: 'none'
+            },
+            upgrades: {
+                speed: { level: 1, cost: 50 },
+                jumpPower: { level: 1, cost: 75 },
+                jetpack: { level: 0, cost: 1000 },
+                timeSlow: { level: 0, cost: 2000 },
+                coinMagnet: { level: 0, cost: 3000 },
+                shield: { level: 0, cost: 5000 },
+                lavaResist: { level: 1, cost: 150 }
+            },
+            cosmetics: {
+                colors: {
+                    red: { owned: true, cost: 0 },
+                    blue: { owned: false, cost: 100 },
+                    green: { owned: false, cost: 100 },
+                    purple: { owned: false, cost: 100 },
+                    gold: { owned: false, cost: 500 },
+                    rainbow: { owned: false, cost: 1000 },    // New
+                    lava: { owned: false, cost: 750 },        // New
+                    neon: { owned: false, cost: 600 }         // New
+                },
+                hats: {
+                    none: { owned: true, cost: 0 },
+                    tophat: { owned: false, cost: 200 },
+                    crown: { owned: false, cost: 1000 },
+                    party: { owned: false, cost: 150 },
+                    cowboy: { owned: false, cost: 200 },
+                    fire: { owned: false, cost: 500 },        // New
+                    devil: { owned: false, cost: 666 },       // New
+                    angel: { owned: false, cost: 777 }        // New
+                }
+            },
+            isPaused: false
+        };
+
+        const COIN_TYPES = {
+            gold: { value: 5, color: 'gold', chance: 0.5, particleColor: '#FFD700' },
+            blue: { value: 10, color: '#4444ff', chance: 0.3, particleColor: '#4444ff' },
+            red: { value: 25, color: '#ff4444', chance: 0.15, particleColor: '#ff4444' },
+            purple: { value: 50, color: '#a044ff', chance: 0.05, particleColor: '#a044ff' }
+        };
+
+        const coinsElement = document.getElementById('coins');
+
+        const platforms = [];
+
+        // Update the platform generation to ensure consistent spawn platform
+        function generatePlatforms() {
+            // Clear existing platforms
+            platforms.forEach(platform => {
+                if (platform.element) {
+                    platform.element.remove();
+                }
+            });
+            platforms.length = 0;
+
+            // Always add spawn platform at fixed position
+            const spawnPlatform = {
+                x: 0,
+                y: 150,    // Fixed spawn platform height
+                width: 250  // Wide enough for safe landing
+            };
+            platforms.push(spawnPlatform);
+
+            // Always add bottom safety platform
+            platforms.push({
+                x: 0,
+                y: 550,
+                width: 200
+            });
+
+            // Generate new platforms
+            const numPlatforms = 15; // More platforms
+            const minWidth = 100;
+            const maxWidth = 200;
+            const minHeight = 100;
+            const maxHeight = 550;
+
+            // Divide the game height into sections for better platform distribution
+            const sections = 5;
+            const sectionHeight = (maxHeight - minHeight) / sections;
+
+            for (let i = 0; i < sections; i++) {
+                const sectionY = minHeight + (i * sectionHeight);
+                const numPlatformsInSection = Math.floor(numPlatforms / sections);
+
+                for (let j = 0; j < numPlatformsInSection; j++) {
+                    const width = Math.random() * (maxWidth - minWidth) + minWidth;
+                    const x = Math.random() * (1150 - width);
+                    const y = sectionY + Math.random() * (sectionHeight - 20);
+
+                    platforms.push({
+                        x: x,
+                        y: y,
+                        width: width
+                    });
+                }
+            }
+
+            // Create platform elements
+            platforms.forEach(platform => {
+                const element = document.createElement('div');
+                element.className = 'platform';
+                element.style.left = platform.x + 'px';
+                element.style.top = platform.y + 'px';
+                element.style.width = platform.width + 'px';
+                document.getElementById('game').appendChild(element);
+                platform.element = element;
+            });
+        }
+
+        generatePlatforms();
+
+        const coins = [];
+
+        function spawnCoin() {
+            if (gameState.currentCoins >= gameState.maxCoins) return;
+            
+            const minHeight = 100;
+            const maxHeight = 330;
+            const x = Math.random() * 750;
+            const y = Math.random() * (maxHeight - minHeight) + minHeight;
+            
+            // Determine coin type based on chance
+            const random = Math.random();
+            let selectedType = 'gold';
+            let currentThreshold = 0;
+            
+            for (const [type, properties] of Object.entries(COIN_TYPES)) {
+                currentThreshold += properties.chance;
+                if (random <= currentThreshold) {
+                    selectedType = type;
+                    break;
+                }
+            }
+            
+            const coinType = COIN_TYPES[selectedType];
+            
+            const element = document.createElement('div');
+            element.className = 'coin';
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.style.backgroundColor = coinType.color;
+            document.getElementById('game').appendChild(element);
+            
+            const coin = { 
+                x, 
+                y, 
+                element, 
+                collected: false, 
+                type: selectedType,
+                value: coinType.value 
+            };
+            coins.push(coin);
+            gameState.currentCoins++;
+        }
+
+        setInterval(spawnCoin, gameState.spawnInterval);
+
+        const gravity = 0.5;
+        let jumpForce = -12; // Changed from const to let
+        let keys = {};
+        const fireballs = []; // Move this up here
+        let gameLoopRunning = true;
+        let dropTimer = 0;
+        const DROP_DELAY = 1000;
+
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Add particle system
+        function createParticle(x, y, color, velocity = { x: 0, y: 0 }) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.backgroundColor = color;
+            
+            document.getElementById('game').appendChild(particle);
+
+            // Add some physics
+            let posX = x;
+            let posY = y;
+            let opacity = 1;
+            let scale = 1;
+
+            function updateParticle() {
+                posX += velocity.x;
+                posY += velocity.y;
+                velocity.y += 0.1; // gravity
+                particle.style.left = posX + 'px';
+                particle.style.top = posY + 'px';
+            }
+
+            const interval = setInterval(updateParticle, 10);
+            setTimeout(() => {
+                clearInterval(interval);
+                particle.remove();
+            }, 500);
+        }
+
+        // Modify the checkCoinCollision function to add particles
+        function checkCoinCollision() {
+            coins.forEach((coin, index) => {
+                if (!coin.collected &&
+                    player.x < coin.x + 15 &&
+                    player.x + 30 > coin.x &&
+                    player.y < coin.y + 15 &&
+                    player.y + 30 > coin.y) {
+                    coin.collected = true;
+                    coin.element.remove();
+                    coins.splice(index, 1);
+                    gameState.coins += coin.value;
+                    gameState.currentCoins--;
+                    updateCoins();
+
+                    // Create coin collection particles with appropriate color
+                    const coinType = COIN_TYPES[coin.type];
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (Math.PI * 2 * i) / 8;
+                        createParticle(
+                            coin.x + 7,
+                            coin.y + 7,
+                            coinType.particleColor,
+                            {
+                                x: Math.cos(angle) * 3,
+                                y: Math.sin(angle) * 3
+                            }
+                        );
+                    }
+                    playSound('coin', 0.4);
+                }
+            });
+        }
+
+        function gameOver() {
+            document.getElementById('game-over').style.display = 'block';
+            gameState.isGameOver = true;
+            gameLoopRunning = false;
+            playSound('death', 0.7);
+        }
+
+        // Update the restart function
+        function restartGame() {
+            // Reset game state first
+            gameState.isGameOver = false;
+            gameState.coins = 0;
+            gameState.currentCoins = 0;
+            
+            // Reset all upgrades to initial values
+            gameState.upgrades = {
+                speed: { level: 1, cost: 50 },
+                jumpPower: { level: 1, cost: 75 },
+                jetpack: { level: 0, cost: 1000 },
+                timeSlow: { level: 0, cost: 2000 },
+                coinMagnet: { level: 0, cost: 3000 },
+                shield: { level: 0, cost: 5000 },
+                lavaResist: { level: 1, cost: 150 }
+            };
+
+            // Reset all cosmetics to initial states
+            gameState.cosmetics = {
+                colors: {
+                    red: { owned: true, cost: 0 },
+                    blue: { owned: false, cost: 100 },
+                    green: { owned: false, cost: 100 },
+                    purple: { owned: false, cost: 100 },
+                    gold: { owned: false, cost: 500 },
+                    rainbow: { owned: false, cost: 1000 },    // New
+                    lava: { owned: false, cost: 750 },        // New
+                    neon: { owned: false, cost: 600 }         // New
+                },
+                hats: {
+                    none: { owned: true, cost: 0 },
+                    tophat: { owned: false, cost: 200 },
+                    crown: { owned: false, cost: 1000 },
+                    party: { owned: false, cost: 150 },
+                    cowboy: { owned: false, cost: 200 },
+                    fire: { owned: false, cost: 500 },        // New
+                    devil: { owned: false, cost: 666 },       // New
+                    angel: { owned: false, cost: 777 }        // New
+                }
+            };
+
+            // Reset equipped items to defaults
+            gameState.equipped = {
+                color: '#ff4444',
+                hat: 'none'
+            };
+            
+            // Reset player properties to initial values
+            player.x = 50;
+            player.y = 120;
+            player.velocityY = 0;
+            player.jumping = false;
+            player.speed = 5; // Reset speed to initial value
+            jumpForce = -12; // Reset jump force to initial value
+            
+            // Reset player appearance
+            player.element.style.backgroundColor = gameState.equipped.color;
+            let hatElement = player.element.querySelector('.player-hat');
+            if (hatElement) hatElement.remove();
+            
+            // Clear and regenerate platforms
+            platforms.forEach(platform => {
+                if (platform.element) {
+                    platform.element.remove();
+                }
+            });
+            platforms.length = 0;
+            generatePlatforms();
+            
+            // Clear existing coins
+            coins.forEach(coin => coin.element.remove());
+            coins.length = 0;
+            
+            // Update all displays
+            updateCoins();
+            document.getElementById('game-over').style.display = 'none';
+            
+            // Update shop if it's open
+            initializeShop();
+            
+            // Reset player position display
+            player.element.style.left = player.x + 'px';
+            player.element.style.top = player.y + 'px';
+            
+            // Ensure upgrade displays are reset
+            document.getElementById('speed-level').textContent = '1';
+            document.getElementById('speed-cost').textContent = '50';
+            document.getElementById('jumpPower-level').textContent = '1';
+            document.getElementById('jumpPower-cost').textContent = '75';
+            
+            // Restart the game loop
+            if (!gameLoopRunning) {
+                gameLoopRunning = true;
+                update();
+            }
+        }
+        // Add new game mechanics for the upgrades
+        const playerState = {
+            jetpackFuel: 100,
+            timeSlowDuration: 0,
+            shieldActive: false
+        };
+
+        // Fix the extra closing brackets in the update function
+        function update() {
+            if (!gameState.isPaused && !gameState.isGameOver) {
+                // Horizontal movement
+                if (keys['ArrowLeft']) player.x -= player.speed;
+                if (keys['ArrowRight']) player.x += player.speed;
+
+                // Apply gravity
+                player.velocityY += gravity;
+                player.y += player.velocityY;
+
+                // Check platform collisions
+                let onPlatform = false;
+                platforms.forEach(platform => {
+                    if (player.x + 30 > platform.x && 
+                        player.x < platform.x + platform.width &&
+                        player.y + 30 > platform.y && 
+                        player.y + 30 < platform.y + 30) {
+                        
+                        // Only check collision if player can collide
+                        if (player.canCollide && player.velocityY > 0) {
+                            player.y = platform.y - 30;
+                            player.velocityY = 0;
+                            player.jumping = false;
+                            onPlatform = true;
+                        }
+                    }
+                });
+
+                // Handle drop-through mechanic
+                if (keys['ArrowDown'] && onPlatform) {
+                    // Disable collision and start drop
+                    player.canCollide = false;
+                    player.jumping = true;
+                    player.velocityY = 1; // Small downward push
+                    
+                    // Re-enable collision after 500ms
+                    setTimeout(() => {
+                        player.canCollide = true;
+                    }, 100);
+                }
+
+                if (!onPlatform && !player.jumping) {
+                    player.jumping = true;
+                }
+
+                // Boundaries
+                if (player.x < 0) player.x = 0;
+                if (player.x > 1170) player.x = 1170; // Adjusted for new game width
+                if (player.y >= 570) { // Game over condition
+                    gameOver();
+                    return;
+                }
+
+                // Check coin collisions
+                checkCoinCollision();
+
+                // Jump
+                if (keys['ArrowUp'] && !player.jumping) {
+                    player.velocityY = jumpForce;
+                    player.jumping = true;
+                    playSound('jump', 0.5);
+                }
+
+                // Update player position
+                player.element.style.left = player.x + 'px';
+                player.element.style.top = player.y + 'px';
+
+                // Add movement particles
+                if (keys['ArrowLeft'] || keys['ArrowRight']) {
+                    if (Math.random() > 0.7) { // Only create particles sometimes
+                        createParticle(
+                            player.x + 15,
+                            player.y + 30,
+                            '#ff6666',
+                            {
+                                x: (Math.random() - 0.5) * 2,
+                                y: -Math.random() * 2
+                            }
+                        );
+                    }
+                }
+
+                // Add jump particles
+                if (keys['ArrowUp'] && !player.jumping) {
+                    for (let i = 0; i < 5; i++) {
+                        createParticle(
+                            player.x + 15,
+                            player.y + 30,
+                            '#ffffff',
+                            {
+                                x: (Math.random() - 0.5) * 4,
+                                y: Math.random() * 2
+                            }
+                        );
+                    }
+                }
+
+                // Update fireballs
+                fireballs.forEach((fireball, index) => {
+                    fireball.x += fireball.speed * fireball.direction;
+                    fireball.element.style.left = fireball.x + 'px';
+                    fireball.element.style.top = fireball.y + 'px';
+
+                    // Check collision with player
+                    if (player.x < fireball.x + 30 &&
+                        player.x + 30 > fireball.x &&
+                        player.y < fireball.y + 30 &&
+                        player.y + 30 > fireball.y) {
+                        if (gameState.upgrades.lavaResist.level > 1) {
+                            // Give brief immunity instead of instant death
+                            player.immune = true;
+                            setTimeout(() => player.immune = false, 1000);
+                            fireball.element.remove();
+                            fireballs.splice(index, 1);
+                        } else {
+                            gameOver();
+                        }
+                    }
+
+                    // Remove fireball when off screen
+                    if (fireball.x < -50 || fireball.x > 1250) {
+                        fireball.element.remove();
+                        fireballs.splice(index, 1);
+                    }
+                });
+
+                // Jetpack
+                if (gameState.upgrades.jetpack.level > 0 && keys[' '] && playerState.jetpackFuel > 0) {
+                    player.velocityY = Math.max(player.velocityY - 0.8, -3);
+                    playerState.jetpackFuel -= 1;
+                    createParticle(player.x + 15, player.y + 30, '#ff4400');
+                    if (!AUDIO.jetpack.playing) {
+                        playSound('jetpack', 0.3);
+                    }
+                } else {
+                    playerState.jetpackFuel = Math.min(playerState.jetpackFuel + 0.5, 100);
+                }
+
+                // Time Slow
+                if (gameState.upgrades.timeSlow.level > 0 && keys['t'] && playerState.timeSlowDuration === 0) {
+                    playerState.timeSlowDuration = 300;
+                    fireballs.forEach(fireball => fireball.speed *= 0.5);
+                    playSound('timeSlow', 0.5);
+                }
+                if (playerState.timeSlowDuration > 0) {
+                    playerState.timeSlowDuration--;
+                    if (playerState.timeSlowDuration === 0) {
+                        fireballs.forEach(fireball => fireball.speed *= 2);
+                    }
+                }
+
+                // Coin Magnet
+                if (gameState.upgrades.coinMagnet.level > 0) {
+                    const magnetRange = 100 + (gameState.upgrades.coinMagnet.level * 20);
+                    coins.forEach(coin => {
+                        const dx = player.x - coin.x;
+                        const dy = player.y - coin.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < magnetRange) {
+                            coin.x += dx * 0.1;
+                            coin.y += dy * 0.1;
+                            coin.element.style.left = coin.x + 'px';
+                            coin.element.style.top = coin.y + 'px';
+                        }
+                    });
+                }
+
+                // Shield
+                if (gameState.upgrades.shield.level > 0 && keys['s'] && !playerState.shieldActive) {
+                    playerState.shieldActive = true;
+                    player.element.style.border = '2px solid #00ffff';
+                    setTimeout(() => {
+                        playerState.shieldActive = false;
+                        player.element.style.border = 'none';
+                    }, 3000 + (gameState.upgrades.shield.level * 1000));
+                    playSound('shield', 0.5);
+                }
+            }
+
+            if (gameLoopRunning) {
+                requestAnimationFrame(update);
+            }
+        }
+
+        update();
+
+        // Replace the existing shop functions with these
+        function openShop() {
+            const shopModal = document.getElementById('shop-modal');
+            const overlay = document.querySelector('.modal-overlay');
+            if (shopModal.style.display === 'block') return;
+            
+            shopModal.style.display = 'block';
+            overlay.style.display = 'block';
+            initializeShop();
+            
+            document.getElementById('shop-button').disabled = true;
+            gameState.isPaused = true; // Pause the game
+        }
+
+        function closeShop() {
+            document.getElementById('shop-modal').style.display = 'none';
+            document.querySelector('.modal-overlay').style.display = 'none';
+            document.getElementById('shop-button').disabled = false;
+            gameState.isPaused = false; // Unpause the game
+        }
+
+        function buyUpgrade(type) {
+            const upgrade = gameState.upgrades[type];
+            if (gameState.coins >= upgrade.cost) {
+                gameState.coins -= upgrade.cost;
+                upgrade.level++;
+                upgrade.cost = Math.floor(upgrade.cost * 1.5);
+                
+                if (type === 'speed') {
+                    player.speed += 1;
+                } 
+                if (type === 'jumpPower') {
+                    jumpForce -= 2; // Makes jump stronger (more negative)
+                }
+                
+                // Update display with correct IDs
+                const levelElement = document.getElementById(`${type}-level`);
+                const costElement = document.getElementById(`${type}-cost`);
+                
+                if (levelElement) levelElement.textContent = upgrade.level;
+                if (costElement) costElement.textContent = upgrade.cost;
+                updateCoins();
+                playSound('powerup', 0.6);
+            }
+        }
+
+        function buyCosmetic(type, item) {
+            const cosmetic = gameState.cosmetics[type][item];
+            if (!cosmetic.owned && gameState.coins >= cosmetic.cost) {
+                gameState.coins -= cosmetic.cost;
+                cosmetic.owned = true;
+                updateCoins();
+                initializeShop(); // Refresh shop display
+            }
+        }
+
+        // Update the equipColor function to properly change player color
+        function equipColor(name, color) {
+            if (gameState.cosmetics.colors[name].owned) {
+                gameState.equipped.color = color;
+                player.element.style.background = `linear-gradient(135deg, ${color}, ${adjustColor(color, -20)})`;
+                document.querySelectorAll('.color-option').forEach(el => el.classList.remove('equipped'));
+                event.target.classList.add('equipped');
+            } else {
+                buyCosmetic('colors', name);
+            }
+        }
+
+        // Helper function to darken color for gradient
+        function adjustColor(color, amount) {
+            const hex = color.replace('#', '');
+            const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+            const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+            const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+        }
+
+        function equipHat(name, emoji) {
+            if (gameState.cosmetics.hats[name].owned) {
+                gameState.equipped.hat = name;
+                updatePlayerHat();
+                document.querySelectorAll('.hat-option').forEach(el => el.classList.remove('equipped'));
+                event.target.classList.add('equipped');
+            } else {
+                buyCosmetic('hats', name);
+            }
+        }
+
+        function updatePlayerHat() {
+            let hatElement = player.element.querySelector('.player-hat');
+            if (!hatElement && gameState.equipped.hat !== 'none') {
+                hatElement = document.createElement('div');
+                hatElement.className = 'player-hat';
+                player.element.appendChild(hatElement);
+            }
+            if (hatElement) {
+                if (gameState.equipped.hat === 'none') {
+                    hatElement.remove();
+                } else {
+                    const hats = {
+                        tophat: '🎩',
+                        crown: '👑',
+                        party: '🎉',
+                        cowboy: '🤠',
+                        fire: '🔥',        // New
+                        devil: '😈',       // New
+                        angel: '😇'        // New
+                    };
+                    hatElement.innerHTML = hats[gameState.equipped.hat];
+                }
+            }
+        }
+
+        function updateCoins() {
+            coinsElement.textContent = `Coins: ${gameState.coins}`;
+        }
+
+        function initializeShop() {
+            const colorContainer = document.getElementById('color-options');
+            const hatContainer = document.getElementById('hat-options');
+            
+            // Clear existing items
+            colorContainer.innerHTML = '';
+            hatContainer.innerHTML = '';
+
+            // Initialize colors
+            const colors = {
+                red: '#ff4444',
+                blue: '#4444ff',
+                green: '#44ff44',
+                purple: '#a044ff',
+                rainbow: 'linear-gradient(135deg, #ff4444, #ff6b6b)',    // New
+                lava: 'linear-gradient(135deg, #ff4500, #ff8c00)',        // New
+                neon: 'linear-gradient(135deg, #39ff14, #00ff00)'         // New
+            };
+
+            for (const [name, color] of Object.entries(colors)) {
+                const div = document.createElement('div');
+                const price = gameState.cosmetics.colors[name].cost;
+                div.className = `color-option ${gameState.cosmetics.colors[name].owned ? '' : 'locked'}`;
+                div.style.backgroundColor = color;
+                div.onclick = () => equipColor(name, color);
+                if (gameState.equipped.color === color) div.classList.add('equipped');
+                if (price > 0) {
+                    div.innerHTML += `<div class="cosmetic-price">${price} coins</div>`;
+                }
+                colorContainer.appendChild(div);
+            }
+
+            // Initialize hats
+            const hats = {
+                none: '',
+                tophat: '🎩',
+                crown: '👑',
+                party: '🎉',
+                cowboy: '🤠',
+                fire: '🔥',        // New
+                devil: '😈',       // New
+                angel: '😇'        // New
+            };
+
+            for (const [name, emoji] of Object.entries(hats)) {
+                const div = document.createElement('div');
+                const price = gameState.cosmetics.hats[name].cost;
+                div.className = `hat-option ${gameState.cosmetics.hats[name].owned ? '' : 'locked'}`;
+                div.innerHTML = `<span class="hat-preview">${emoji}</span>`;
+                if (price > 0) {
+                    div.innerHTML += `<div class="cosmetic-price">${price} coins</div>`;
+                }
+                div.onclick = () => equipHat(name, emoji);
+                if (gameState.equipped.hat === name) div.classList.add('equipped');
+                hatContainer.appendChild(div);
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('shop-button').addEventListener('click', openShop);
+        document.getElementById('retry-button').addEventListener('click', restartGame);
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Debug function to add coins
+        //function addDebugCoins() {
+           //gameState.coins += 500;
+            //updateCoins();
+        //}
+
+        // Add debug button
+        const debugButton = document.createElement('button');
+        debugButton.innerHTML = 'Add 500 Coins (Debug)';
+        debugButton.style.position = 'absolute';
+        debugButton.style.top = '10px';
+        debugButton.style.left = '200px';
+        debugButton.onclick = addDebugCoins;
+        document.getElementById('game').appendChild(debugButton);
+
+        // Add this new function to create bubbless
+        function createBubbles() {
+            const lava = document.getElementById('lava');
+            
+            setInterval(() => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                
+                // Random size between 5 and 15 pixels
+                const size = Math.random() * 10 + 5;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                
+                // Random position along the width
+                const position = Math.random() * 100;
+                bubble.style.left = `${position}%`;
+                
+                lava.appendChild(bubble);
+                
+                // Remove bubble after animation
+                setTimeout(() => {
+                    bubble.remove();
+                }, 2000);
+            }, 100); // Create new bubble every 100ms
+        }
+        createBubbles();
+        // Add fireball system
+        function spawnFireball() {
+            const side = Math.random() > 0.5 ? 'left' : 'right';
+            const y = Math.random() * 400 + 50; // Random height between 50 and 450
+            
+            const fireball = {
+                x: side === 'left' ? -30 : 1230,
+                y: y,
+                speed: Math.random() * 3 + 2,
+                direction: side === 'left' ? 1 : -1,
+                element: document.createElement('div')
+            };
+            
+            fireball.element.className = 'fireball';
+            document.getElementById('game').appendChild(fireball.element);
+            fireballs.push(fireball);
+            playSound('fireball', 0.4);
+        }
+
+        // Spawn fireballs periodically
+        setInterval(spawnFireball, 3000); // Change from 1 to 3000ms (3 seconds)
+
+        // Add volume control
+        const volumeSlider = document.getElementById('volume');
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = e.target.value / 100;
+            Object.values(AUDIO).forEach(audio => {
+                audio.volume = volume;
+            });
+        });
+    </script>
+</body>
+</html>
