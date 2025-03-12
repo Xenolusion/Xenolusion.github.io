@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convoluted Fortune Teller</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background: #f4f4f4; }
+        .hidden { display: none; }
+        .fortune-box {
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid black;
+            width: 300px;
+            background: white;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .button {
+            padding: 10px 20px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            margin: 10px;
+        }
+        .button:hover {
+            background: darkblue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Convoluted Fortune Teller</h1>
+    <div class="fortune-box" id="fortuneContainer">
+        <p id="fortune">Click the button to reveal your fate...</p>
+    </div>
+    <button class="button" onclick="revealFortune()">Reveal Fortune</button>
+    <button class="button" onclick="changeBackground()">Mystery Button</button>
+    <script>
+        (function() {
+            const fortunes = [
+                "You will find unexpected wealth!", "Beware of the number 7.", "A great journey awaits you.",
+                "Avoid making big decisions today.", "Someone you trust has a secret.", "Happiness is just around the corner.",
+                "A mysterious letter will change your life.", "Today is a good day for new beginnings.", "Trust your instincts.",
+                "An exciting opportunity is on its way.", "You will meet someone who will inspire you.", "Be patient, success is coming.",
+                "A dream you have will soon come true.", "Fortune favors the bold.", "Something lost will soon be found.",
+                "Your kindness will lead to great rewards.", "You will discover a hidden talent.", "An old friend will bring good news.",
+                "Change is coming, embrace it.", "The stars align in your favor.", "A surprise gift will make you smile.",
+                "Love is closer than you think.", "Your hard work will pay off.", "You will soon have a reason to celebrate.",
+                "The answer you seek is within you.", "Your energy attracts positive vibes.", "An adventure is on the horizon.",
+                "A challenge will make you stronger.", "Trust the process, good things take time.", "Your creativity will shine soon.",
+                "Your efforts are being noticed.", "Something amazing is about to happen.", "You will receive unexpected support.",
+                "New doors are opening for you.", "Your dreams are valid and achievable.", "You are about to make a wise choice.",
+                "A small act of kindness will go a long way.", "Listen to your heart, it knows the way.", "Good fortune is in your future.",
+                "An important lesson will come your way.", "Your intuition is your superpower.", "You will soon gain clarity on an issue.",
+                "Your laughter is contagious, spread it around.", "A lucky break is coming.", "You are capable of amazing things.",
+                "A new friendship will bring joy.", "Stay curious, new knowledge is coming.", "An unexpected encounter will brighten your day.",
+                "Be open to unexpected invitations.", "Your determination will be rewarded.", "New experiences will enrich your life.",
+                "Good luck follows you everywhere.", "The universe is conspiring in your favor.", "You will inspire someone today.",
+                "A wish you made will come true soon.", "Your charm will open doors.", "Positive changes are coming your way.",
+                "The people around you appreciate you more than you know.", "Your journey is unique and beautiful.", "An exciting discovery awaits you.",
+                "You will overcome an obstacle with ease.", "A long-awaited opportunity is near.", "Your confidence will attract success.",
+                "Your generosity will be returned tenfold.", "Your passion will lead to new achievements.", "A joyful surprise is headed your way.",
+                "A secret admirer will reveal themselves.", "You will receive praise for your hard work.", "A peaceful moment will bring clarity.",
+                "Your ideas will gain recognition.", "A forgotten dream will resurface.", "You are loved more than you realize.",
+                "New beginnings bring new blessings.", "Your persistence will lead to victory.", "Something wonderful is unfolding for you.",
+                "Good energy surrounds you.", "Your presence brings joy to others.", "Trust yourself, you are on the right path.",
+                "Opportunities will knock on your door.", "Your talents will be acknowledged.", "You will make a valuable connection.",
+                "Your courage will pay off.", "A relaxing moment will refresh your spirit.", "You are about to make a breakthrough.",
+                "An important message is on its way.", "You will be guided to the right decision.", "Your happiness is contagious, keep smiling."
+            ];
+            
+            function convolutedFortunePicker() {
+                let rng = Math.random();
+                let index = Math.floor(rng * fortunes.length);
+                return fortunes[index];
+            }
+            
+            function revealFortune() {
+                setTimeout(() => {
+                    document.getElementById("fortune").classList.add("hidden");
+                    setTimeout(() => {
+                        document.getElementById("fortune").innerText = convolutedFortunePicker();
+                        document.getElementById("fortune").classList.remove("hidden");
+                    }, 1000);
+                }, 500);
+            }
+            
+            function changeBackground() {
+                let colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
+                document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            window.revealFortune = revealFortune;
+            window.changeBackground = changeBackground;
+        })();
+    </script>
+</body>
+</html>
