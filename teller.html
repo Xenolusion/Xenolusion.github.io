@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convoluted Fortune Teller</title>
+    <meta name="theme-color" content="#9b4dca">
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: #f4f4f4; }
         .hidden { display: none; }
@@ -15,6 +16,8 @@
             background: white;
             box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
+            transform-origin: center;
+            transition: all 0.3s ease;
         }
         .button {
             padding: 10px 20px;
@@ -30,15 +33,180 @@
         .button:hover {
             background: darkblue;
         }
+        @keyframes floatAround {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(5px, -5px); }
+            50% { transform: translate(-5px, -10px); }
+            75% { transform: translate(-8px, -2px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .fortune-box:hover {
+            animation: floatAround 3s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .mystical-border {
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400% 400%;
+            animation: mysticalBorder 10s ease infinite;
+        }
+
+        @keyframes mysticalBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .crystal-ball {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(128,200,255,0.4));
+            border-radius: 50%;
+            filter: blur(1px);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        .fortune-sparkle {
+            position: absolute;
+            pointer-events: none;
+            animation: sparkleFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(10px, -10px) rotate(180deg); }
+        }
+
+        .wisdom-meter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 20px;
+            background: linear-gradient(90deg, #ff0000, #00ff00);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .wisdom-fill {
+            height: 100%;
+            width: 0%;
+            background: rgba(255,255,255,0.7);
+            transition: width 0.3s;
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .fortune-teller {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="35" r="30" fill="%23800080"/><path d="M20,100 Q50,70 80,100" fill="%23800080"/><circle cx="40" cy="30" r="5" fill="white"/><circle cx="60" cy="30" r="5" fill="white"/><path d="M40,45 Q50,50 60,45" stroke="white" fill="none"/></svg>') no-repeat center;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .category-label {
+            grid-column: 1/-1;
+            text-align: center;
+            color: #4a4a4a;
+            font-size: 1.2em;
+            margin: 10px 0;
+            font-family: 'Papyrus', fantasy;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .button {
+            background: linear-gradient(45deg, #6b3fa0, #9b4dca);
+            border-radius: 25px;
+            padding: 12px 24px;
+            color: white;
+            font-family: 'Papyrus', fantasy;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .button:hover {
+            background: linear-gradient(45deg, #9b4dca, #6b3fa0);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(155, 77, 202, 0.5);
+        }
+
+        h1 {
+            font-family: 'Papyrus', fantasy;
+            font-size: 2.5em;
+            color: #4a4a4a;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        #fortune {
+            font-family: 'Papyrus', fantasy;
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #4a4a4a;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
     </style>
 </head>
 <body>
-    <h1>Convoluted Fortune Teller</h1>
+    <h1>✨ Mystical Fortune Teller ✨</h1>
+    
+    <div class="fortune-teller"></div>
+    
     <div class="fortune-box" id="fortuneContainer">
         <p id="fortune">Click the button to reveal your fate...</p>
     </div>
-    <button class="button" onclick="revealFortune()">Reveal Fortune</button>
-    <button class="button" onclick="changeBackground()">Mystery Button</button>
+
+    <div class="button-container">
+        <div class="category-label">✨ Fortune Actions ✨</div>
+        <button class="button" onclick="revealFortune()">Reveal Fortune</button>
+        <button class="button" onclick="shuffleText()">Shuffle Text</button>
+        <button class="button" onclick="typewriter()">Typewriter</button>
+        
+        <div class="category-label">🎨 Visual Effects 🎨</div>
+        <button class="button" onclick="changeBackground()">Change Background</button>
+        <button class="button" onclick="toggleDarkMode()">Dark Mode</button>
+        <button class="button" onclick="makeRainbow()">Rainbow Mode</button>
+        <button class="button" onclick="neon()">Neon</button>
+        <button class="button" onclick="matrixMode()">Matrix Effect</button>
+        <button class="button" onclick="disco()">Disco Lights</button>
+        
+        <div class="category-label">✨ Animations ✨</div>
+        <button class="button" onclick="makeItRain()">Make it Rain</button>
+        <button class="button" onclick="bounceContainer()">Bounce</button>
+        <button class="button" onclick="shakeScreen()">Earthquake</button>
+        <button class="button" onclick="bubbles()">Bubbles</button>
+        <button class="button" onclick="tornado()">Tornado</button>
+        <button class="button" onclick="wave()">Wave</button>
+        
+        <div class="category-label">🎯 Transform Effects 🎯</div>
+        <button class="button" onclick="glitch()">Glitch</button>
+        <button class="button" onclick="explosion()">Explode</button>
+        <button class="button" onclick="mirror()">Mirror</button>
+        <button class="button" onclick="grow()">Grow</button>
+        <button class="button" onclick="shrink()">Shrink</button>
+        <button class="button" onclick="jelly()">Jelly</button>
+    </div>
     <script>
         (function() {
             const fortunes = [
@@ -93,9 +261,502 @@
                 let colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
                 document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
             }
+
+            function shuffleText() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.transform = `rotate(${Math.random() * 360}deg)`;
+                setTimeout(() => {
+                    container.style.transform = 'rotate(0deg)';
+                }, 1000);
+            }
+
+            function toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
+                const container = document.getElementById("fortuneContainer");
+                container.classList.toggle('dark-mode');
+            }
+
+            function makeItRain() {
+                for (let i = 0; i < 10; i++) {
+                    const emoji = document.createElement('div');
+                    emoji.innerText = '🌟';
+                    emoji.style.position = 'fixed';
+                    emoji.style.left = Math.random() * 100 + 'vw';
+                    emoji.style.top = '-20px';
+                    emoji.style.fontSize = '24px';
+                    emoji.style.animation = `fall ${Math.random() * 2 + 1}s linear`;
+                    document.body.appendChild(emoji);
+                    setTimeout(() => emoji.remove(), 3000);
+                }
+            }
+
+            function bounceContainer() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "bounce 0.5s ease infinite";
+            }
+
+            function makeRainbow() {
+                const text = document.getElementById("fortune");
+                text.style.background = "linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet)";
+                text.style.webkitBackgroundClip = "text";
+                text.style.webkitTextFillColor = "transparent";
+            }
+
+            function shakeScreen() {
+                document.body.style.animation = "shake 0.5s ease";
+                setTimeout(() => document.body.style.animation = "", 500);
+            }
+
+            function matrixMode() {
+                document.body.style.backgroundColor = "black";
+                const text = document.getElementById("fortune");
+                text.style.color = "#00ff00";
+                text.style.textShadow = "0 0 5px #00ff00";
+            }
+
+            function disco() {
+                const interval = setInterval(() => {
+                    document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                }, 100);
+                setTimeout(() => clearInterval(interval), 3000);
+            }
+
+            function bubbles() {
+                for (let i = 0; i < 20; i++) {
+                    const bubble = document.createElement("div");
+                    bubble.className = "bubble";
+                    bubble.style.left = Math.random() * 100 + "vw";
+                    document.body.appendChild(bubble);
+                    setTimeout(() => bubble.remove(), 2000);
+                }
+            }
+
+            function tornado() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "spin 1s ease-in-out infinite";
+                setTimeout(() => container.style.animation = "", 3000);
+            }
+
+            function wave() {
+                const text = document.getElementById("fortune");
+                const letters = text.innerText.split('');
+                text.innerHTML = letters.map(letter => 
+                    `<span style="display:inline-block">${letter}</span>`
+                ).join('');
+                Array.from(text.children).forEach((span, i) => {
+                    span.style.animation = `wave 1s ease-in-out ${i * 0.1}s infinite`;
+                });
+            }
+
+            function pixel() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.filter = "pixelate(5px)";
+                setTimeout(() => container.style.filter = "", 2000);
+            }
+
+            function jelly() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "jelly 0.5s ease-in-out";
+                setTimeout(() => container.style.animation = "", 500);
+            }
+
+            function glitch() {
+                const text = document.getElementById("fortune");
+                text.style.animation = "glitch 0.3s infinite";
+                setTimeout(() => text.style.animation = "", 2000);
+            }
+
+            function explosion() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "explode 0.5s ease-out";
+                setTimeout(() => container.style.animation = "", 500);
+            }
+
+            function mirror() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.transform = "scaleX(-1)";
+                setTimeout(() => container.style.transform = "", 2000);
+            }
+
+            function neon() {
+                const text = document.getElementById("fortune");
+                text.style.textShadow = "0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff";
+                text.style.color = "#fff";
+                setTimeout(() => {
+                    text.style.textShadow = "";
+                    text.style.color = "";
+                }, 3000);
+            }
+
+            function grow() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "grow 0.5s ease-in-out";
+                setTimeout(() => container.style.animation = "", 500);
+            }
+
+            function shrink() {
+                const container = document.getElementById("fortuneContainer");
+                container.style.animation = "shrink 0.5s ease-in-out";
+                setTimeout(() => container.style.animation = "", 500);
+            }
+
+            // Add new styles dynamically
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes fall {
+                    to { transform: translateY(100vh); }
+                }
+                .dark-mode {
+                    background: #222 !important;
+                    color: #fff !important;
+                }
+                #fortuneContainer {
+                    transition: transform 1s;
+                }
+                @keyframes bounce {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-20px); }
+                }
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-10px); }
+                    75% { transform: translateX(10px); }
+                }
+                .bubble {
+                    position: fixed;
+                    width: 20px;
+                    height: 20px;
+                    background: rgba(255, 255, 255, 0.5);
+                    border-radius: 50%;
+                    animation: float 2s ease-in;
+                }
+                @keyframes float {
+                    to { transform: translateY(-100vh); }
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg) scale(1); }
+                    to { transform: rotate(720deg) scale(0.5); }
+                }
+                @keyframes wave {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-20px); }
+                }
+                @keyframes jelly {
+                    0%, 100% { transform: scale(1); }
+                    25% { transform: scale(0.9, 1.1); }
+                    50% { transform: scale(1.1, 0.9); }
+                    75% { transform: scale(0.95, 1.05); }
+                }
+                @keyframes glitch {
+                    0% { transform: translate(0); }
+                    20% { transform: translate(-5px, 5px); }
+                    40% { transform: translate(-5px, -5px); }
+                    60% { transform: translate(5px, 5px); }
+                    80% { transform: translate(5px, -5px); }
+                    100% { transform: translate(0); }
+                }
+                @keyframes explode {
+                    0% { transform: scale(1); opacity: 1; }
+                    100% { transform: scale(2); opacity: 0; }
+                }
+                @keyframes grow {
+                    to { transform: scale(1.5); }
+                }
+                @keyframes shrink {
+                    to { transform: scale(0.5); }
+                }
+            `;
+            document.head.appendChild(styleSheet);
             
             window.revealFortune = revealFortune;
             window.changeBackground = changeBackground;
+            window.shuffleText = shuffleText;
+            window.toggleDarkMode = toggleDarkMode;
+            window.makeItRain = makeItRain;
+            window.bounceContainer = bounceContainer;
+            window.makeRainbow = makeRainbow;
+            window.shakeScreen = shakeScreen;
+            window.matrixMode = matrixMode;
+            window.disco = disco;
+            window.bubbles = bubbles;
+            window.tornado = tornado;
+            window.wave = wave;
+            window.pixel = pixel;
+            window.jelly = jelly;
+            window.glitch = glitch;
+            window.explosion = explosion;
+            window.mirror = mirror;
+            window.neon = neon;
+            window.grow = grow;
+            window.shrink = shrink;
+
+            // Add random mystical symbols that float around
+            function addMysticalSymbols() {
+                const symbols = '✧☆✯⋆⭐️✨⚝✺❂☀︎★';
+                const container = document.getElementById("fortuneContainer");
+                
+                setInterval(() => {
+                    const symbol = document.createElement('div');
+                    symbol.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                    symbol.style.position = 'fixed';
+                    symbol.style.left = Math.random() * window.innerWidth + 'px';
+                    symbol.style.top = Math.random() * window.innerHeight + 'px';
+                    symbol.style.fontSize = '20px';
+                    symbol.style.opacity = '0.6';
+                    symbol.style.animation = 'floatAround 3s ease-in-out infinite';
+                    document.body.appendChild(symbol);
+                    
+                    setTimeout(() => symbol.remove(), 3000);
+                }, 2000);
+            }
+
+            // Add ambient sound effects
+            function addAmbientSounds() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                function playMysticalSound() {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(Math.random() * 200 + 200, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 1);
+                }
+
+                document.getElementById("fortuneContainer").addEventListener('mouseover', playMysticalSound);
+            }
+
+            // Auto-changing color theme
+            function startColorCycle() {
+                const hues = [0, 60, 120, 180, 240, 300];
+                let currentIndex = 0;
+                
+                setInterval(() => {
+                    document.body.style.backgroundColor = `hsl(${hues[currentIndex]}, 70%, 90%)`;
+                    currentIndex = (currentIndex + 1) % hues.length;
+                }, 5000);
+            }
+
+            // Initialize new features
+            addMysticalSymbols();
+            addAmbientSounds();
+            startColorCycle();
+
+            // Add mystical border effect to fortune box
+            document.getElementById("fortuneContainer").classList.add("mystical-border");
+            
+            // Add fortune counter
+            let fortuneCount = 0;
+            window.revealFortune = function() {
+                fortuneCount++;
+                originalRevealFortune();
+                if (fortuneCount % 10 === 0) {
+                    alert(`You've revealed ${fortuneCount} fortunes! The spirits are pleased!`);
+                }
+            };
+
+            // Create floating crystal ball that follows cursor
+            function addCrystalBall() {
+                const ball = document.createElement('div');
+                ball.className = 'crystal-ball';
+                document.body.appendChild(ball);
+
+                document.addEventListener('mousemove', (e) => {
+                    ball.style.display = 'block';
+                    ball.style.left = e.clientX - 50 + 'px';
+                    ball.style.top = e.clientY - 50 + 'px';
+                });
+            }
+
+            // Add wisdom meter
+            function addWisdomMeter() {
+                const meter = document.createElement('div');
+                meter.className = 'wisdom-meter';
+                const fill = document.createElement('div');
+                fill.className = 'wisdom-fill';
+                meter.appendChild(fill);
+                document.body.appendChild(meter);
+
+                let wisdom = 0;
+                setInterval(() => {
+                    wisdom = Math.min(100, wisdom + 1);
+                    fill.style.width = wisdom + '%';
+                }, 1000);
+
+                return () => wisdom;
+            }
+
+            // Random fortune flavor text
+            const flavorTexts = [
+                "The stars align...", 
+                "The crystal ball swirls...",
+                "The spirits whisper...",
+                "The cosmos speaks...",
+                "The mists part..."
+            ];
+
+            // Enhanced fortune reveal with flavor
+            const originalRevealFortune = window.revealFortune;
+            window.revealFortune = function() {
+                const flavor = document.createElement('div');
+                flavor.innerText = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
+                flavor.style.opacity = '0';
+                document.getElementById('fortuneContainer').prepend(flavor);
+
+                // Fade in flavor text
+                setTimeout(() => {
+                    flavor.style.transition = 'opacity 0.5s';
+                    flavor.style.opacity = '1';
+                    
+                    // Then reveal fortune
+                    setTimeout(() => {
+                        flavor.style.opacity = '0';
+                        originalRevealFortune();
+                        setTimeout(() => flavor.remove(), 500);
+                        addSparkles();
+                    }, 1500);
+                }, 100);
+            };
+
+            // Add sparkles around fortune
+            function addSparkles() {
+                const container = document.getElementById('fortuneContainer');
+                for(let i = 0; i < 5; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'fortune-sparkle';
+                    sparkle.innerHTML = '✨';
+                    sparkle.style.position = 'absolute';
+                    sparkle.style.left = Math.random() * 100 + '%';
+                    sparkle.style.top = Math.random() * 100 + '%';
+                    container.appendChild(sparkle);
+                    setTimeout(() => sparkle.remove(), 2000);
+                }
+            }
+
+            // Random mystical quotes that appear and fade
+            function addRandomQuotes() {
+                const quotes = [
+                    "As above, so below...",
+                    "The future is fluid...",
+                    "Time is an illusion...",
+                    "Destiny awaits...",
+                    "The wheel turns..."
+                ];
+
+                setInterval(() => {
+                    const quote = document.createElement('div');
+                    quote.style.position = 'fixed';
+                    quote.style.left = Math.random() * 80 + 10 + '%';
+                    quote.style.top = Math.random() * 80 + 10 + '%';
+                    quote.style.opacity = '0';
+                    quote.style.color = '#' + Math.floor(Math.random()*16777215).toString(16);
+                    quote.style.fontStyle = 'italic';
+                    quote.style.transition = 'opacity 2s';
+                    quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
+                    document.body.appendChild(quote);
+
+                    requestAnimationFrame(() => {
+                        quote.style.opacity = '0.7';
+                        setTimeout(() => {
+                            quote.style.opacity = '0';
+                            setTimeout(() => quote.remove(), 2000);
+                        }, 2000);
+                    });
+                }, 5000);
+            }
+
+            // Initialize new features
+            addCrystalBall();
+            const getWisdom = addWisdomMeter();
+            addRandomQuotes();
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if(e.code === 'Space') {
+                    revealFortune();
+                } else if(e.code === 'KeyD') {
+                    toggleDarkMode();
+                } else if(e.code === 'KeyR') {
+                    makeItRain();
+                }
+            });
+
+            // Fix duplicate fortune counter and revealFortune override
+            (function() {
+                // Remove duplicate fortune counter code
+                let fortuneCount = 0;
+                const originalRevealFortune = window.revealFortune;
+                
+                // Combine both fortune reveal enhancements into one
+                window.revealFortune = function() {
+                    fortuneCount++;
+                    
+                    // Add flavor text
+                    const flavor = document.createElement('div');
+                    flavor.innerText = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
+                    flavor.style.opacity = '0';
+                    document.getElementById('fortuneContainer').prepend(flavor);
+            
+                    // Fade in flavor text then reveal fortune
+                    setTimeout(() => {
+                        flavor.style.transition = 'opacity 0.5s';
+                        flavor.style.opacity = '1';
+                        
+                        setTimeout(() => {
+                            flavor.style.opacity = '0';
+                            originalRevealFortune();
+                            setTimeout(() => flavor.remove(), 500);
+                            addSparkles();
+                            
+                            // Check fortune count milestone
+                            if (fortuneCount % 10 === 0) {
+                                alert(`You've revealed ${fortuneCount} fortunes! The spirits are pleased!`);
+                            }
+                        }, 1500);
+                    }, 100);
+                };
+            
+                // Fix missing styles for floating elements
+                const additionalStyles = `
+                    .floating-symbol {
+                        position: fixed;
+                        pointer-events: none;
+                        z-index: 100;
+                        animation: floatAround 3s ease-in-out infinite;
+                    }
+                    
+                    .mystical-quote {
+                        position: fixed;
+                        font-style: italic;
+                        pointer-events: none;
+                        z-index: 101;
+                        transition: opacity 2s;
+                    }
+                `;
+                styleSheet.textContent += additionalStyles;
+            
+                // Fix wisdom meter to prevent multiple instances
+                if (!document.querySelector('.wisdom-meter')) {
+                    addWisdomMeter();
+                }
+            
+                // Fix crystal ball to prevent multiple instances
+                if (!document.querySelector('.crystal-ball')) {
+                    addCrystalBall();
+                }
+            
+                // Fix ambient sounds to prevent multiple listeners
+                const fortuneContainer = document.getElementById("fortuneContainer");
+                fortuneContainer.removeEventListener('mouseover', playMysticalSound);
+                fortuneContainer.addEventListener('mouseover', playMysticalSound);
+            })();
         })();
     </script>
 </body>
