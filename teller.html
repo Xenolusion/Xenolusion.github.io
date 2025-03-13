@@ -3,761 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convoluted Fortune Teller</title>
-    <meta name="theme-color" content="#9b4dca">
+    <title>Fortune Teller</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #f4f4f4; }
-        .hidden { display: none; }
-        .fortune-box {
-            margin: 20px auto;
-            padding: 20px;
-            border: 2px solid black;
-            width: 300px;
-            background: white;
-            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            transform-origin: center;
-            transition: all 0.3s ease;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            position: relative;
+            flex-direction: column;
         }
-        .button {
-            padding: 10px 20px;
-            background: blue;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background 0.3s;
-            margin: 10px;
-        }
-        .button:hover {
-            background: darkblue;
-        }
-        @keyframes floatAround {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(5px, -5px); }
-            50% { transform: translate(-5px, -10px); }
-            75% { transform: translate(-8px, -2px); }
-            100% { transform: translate(0, 0); }
-        }
-
-        .fortune-box:hover {
-            animation: floatAround 3s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .mystical-border {
-            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            background-size: 400% 400%;
-            animation: mysticalBorder 10s ease infinite;
-        }
-
-        @keyframes mysticalBorder {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .crystal-ball {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(128,200,255,0.4));
-            border-radius: 50%;
-            filter: blur(1px);
-            box-shadow: 0 0 20px rgba(255,255,255,0.5);
-            pointer-events: none;
-            z-index: 1000;
-            display: none;
-        }
-
-        .fortune-sparkle {
-            position: absolute;
-            pointer-events: none;
-            animation: sparkleFloat 2s ease-in-out infinite;
-        }
-
-        @keyframes sparkleFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(10px, -10px) rotate(180deg); }
-        }
-
-        .wisdom-meter {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 100px;
-            height: 20px;
-            background: linear-gradient(90deg, #ff0000, #00ff00);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .wisdom-fill {
-            height: 100%;
-            width: 0%;
-            background: rgba(255,255,255,0.7);
-            transition: width 0.3s;
-        }
-
-        .button-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(5px);
-        }
-
-        .fortune-teller {
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="35" r="30" fill="%23800080"/><path d="M20,100 Q50,70 80,100" fill="%23800080"/><circle cx="40" cy="30" r="5" fill="white"/><circle cx="60" cy="30" r="5" fill="white"/><path d="M40,45 Q50,50 60,45" stroke="white" fill="none"/></svg>') no-repeat center;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .category-label {
-            grid-column: 1/-1;
+        #fortune-teller {
             text-align: center;
-            color: #4a4a4a;
-            font-size: 1.2em;
-            margin: 10px 0;
-            font-family: 'Papyrus', fantasy;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            background-color: #777777;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .button {
-            background: linear-gradient(45deg, #6b3fa0, #9b4dca);
-            border-radius: 25px;
-            padding: 12px 24px;
-            color: white;
-            font-family: 'Papyrus', fantasy;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            transform-origin: center;
-        }
-
-        .button:hover {
-            background: linear-gradient(45deg, #9b4dca, #6b3fa0);
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(155, 77, 202, 0.5);
-        }
-
-        h1 {
-            font-family: 'Papyrus', fantasy;
-            font-size: 2.5em;
-            color: #4a4a4a;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
         #fortune {
-            font-family: 'Papyrus', fantasy;
+            margin-top: 20px;
             font-size: 1.2em;
-            line-height: 1.6;
-            color: #4a4a4a;
+            color: #333;
         }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #top-left {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #date {
+            font-size: 1.2em;
+            font-weight: bold;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        select {
+            padding: 5px;
+            font-size: 1em;
+        }
+        .stars {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+        }
+        .star {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        background-color: white;
+        border-radius: 50%;
+        opacity: 0;
+        animation: twinkle 3s infinite ease-in-out;
+        }
+        /* Twinkle effect */
+        @keyframes twinkle {
+        0%, 100% { opacity: 0; transform: scale(0.5); }
+        50% { opacity: 1; transform: scale(1.2); }
         }
     </style>
-</head>
-<body>
-    <h1>✨ Mystical Fortune Teller ✨</h1>
-    
-    <div class="fortune-teller"></div>
-    
-    <div class="fortune-box" id="fortuneContainer">
-        <p id="fortune">Click the button to reveal your fate...</p>
+    </head>
+    <body>
+    <div class="stars"></div>
+    <div id="top-left">
+        <div id="date"></div>
+        <select id="bg-color" onchange="changeBackground()">
+            <option value="#000000">Night Sky</option>
+            <option value="#31613e">Mystical Forest</option>
+            <option value="#7a2d54">Hazed Maze Purple</option>
+            <option value="#351840">Underworld Purple</option>
+            <option value="#00456e">Cavern Blue</option>
+            <option value="#6e0000">red</option>
+        </select>
     </div>
-
-    <div class="button-container">
-        <div class="category-label">✨ Fortune Actions ✨</div>
-        <button class="button" onclick="revealFortune()">Reveal Fortune</button>
-        <button class="button" onclick="shuffleText()">Shuffle Text</button>
-        <button class="button" onclick="typewriter()">Typewriter</button>
-        
-        <div class="category-label">🎨 Visual Effects 🎨</div>
-        <button class="button" onclick="changeBackground()">Change Background</button>
-        <button class="button" onclick="toggleDarkMode()">Dark Mode</button>
-        <button class="button" onclick="makeRainbow()">Rainbow Mode</button>
-        <button class="button" onclick="neon()">Neon</button>
-        <button class="button" onclick="matrixMode()">Matrix Effect</button>
-        <button class="button" onclick="disco()">Disco Lights</button>
-        
-        <div class="category-label">✨ Animations ✨</div>
-        <button class="button" onclick="makeItRain()">Make it Rain</button>
-        <button class="button" onclick="bounceContainer()">Bounce</button>
-        <button class="button" onclick="shakeScreen()">Earthquake</button>
-        <button class="button" onclick="bubbles()">Bubbles</button>
-        <button class="button" onclick="tornado()">Tornado</button>
-        <button class="button" onclick="wave()">Wave</button>
-        
-        <div class="category-label">🎯 Transform Effects 🎯</div>
-        <button class="button" onclick="glitch()">Glitch</button>
-        <button class="button" onclick="explosion()">Explode</button>
-        <button class="button" onclick="mirror()">Mirror</button>
-        <button class="button" onclick="grow()">Grow</button>
-        <button class="button" onclick="shrink()">Shrink</button>
-        <button class="button" onclick="jelly()">Jelly</button>
+    <div id="fortune-teller">
+        <h1>Fortune Teller</h1>
+        <button onclick="tellFortune()">Tell me my fortune!</button>
+        <div id="fortune"></div>
     </div>
-    <script>
-        (function() {
-            const fortunes = [
-                "You will find unexpected wealth!", "Beware of the number 7.", "A great journey awaits you.",
-                "Avoid making big decisions today.", "Someone you trust has a secret.", "Happiness is just around the corner.",
-                "A mysterious letter will change your life.", "Today is a good day for new beginnings.", "Trust your instincts.",
-                "An exciting opportunity is on its way.", "You will meet someone who will inspire you.", "Be patient, success is coming.",
-                "A dream you have will soon come true.", "Fortune favors the bold.", "Something lost will soon be found.",
-                "Your kindness will lead to great rewards.", "You will discover a hidden talent.", "An old friend will bring good news.",
-                "Change is coming, embrace it.", "The stars align in your favor.", "A surprise gift will make you smile.",
-                "Love is closer than you think.", "Your hard work will pay off.", "You will soon have a reason to celebrate.",
-                "The answer you seek is within you.", "Your energy attracts positive vibes.", "An adventure is on the horizon.",
-                "A challenge will make you stronger.", "Trust the process, good things take time.", "Your creativity will shine soon.",
-                "Your efforts are being noticed.", "Something amazing is about to happen.", "You will receive unexpected support.",
-                "New doors are opening for you.", "Your dreams are valid and achievable.", "You are about to make a wise choice.",
-                "A small act of kindness will go a long way.", "Listen to your heart, it knows the way.", "Good fortune is in your future.",
-                "An important lesson will come your way.", "Your intuition is your superpower.", "You will soon gain clarity on an issue.",
-                "Your laughter is contagious, spread it around.", "A lucky break is coming.", "You are capable of amazing things.",
-                "A new friendship will bring joy.", "Stay curious, new knowledge is coming.", "An unexpected encounter will brighten your day.",
-                "Be open to unexpected invitations.", "Your determination will be rewarded.", "New experiences will enrich your life.",
-                "Good luck follows you everywhere.", "The universe is conspiring in your favor.", "You will inspire someone today.",
-                "A wish you made will come true soon.", "Your charm will open doors.", "Positive changes are coming your way.",
-                "The people around you appreciate you more than you know.", "Your journey is unique and beautiful.", "An exciting discovery awaits you.",
-                "You will overcome an obstacle with ease.", "A long-awaited opportunity is near.", "Your confidence will attract success.",
-                "Your generosity will be returned tenfold.", "Your passion will lead to new achievements.", "A joyful surprise is headed your way.",
-                "A secret admirer will reveal themselves.", "You will receive praise for your hard work.", "A peaceful moment will bring clarity.",
-                "Your ideas will gain recognition.", "A forgotten dream will resurface.", "You are loved more than you realize.",
-                "New beginnings bring new blessings.", "Your persistence will lead to victory.", "Something wonderful is unfolding for you.",
-                "Good energy surrounds you.", "Your presence brings joy to others.", "Trust yourself, you are on the right path.",
-                "Opportunities will knock on your door.", "Your talents will be acknowledged.", "You will make a valuable connection.",
-                "Your courage will pay off.", "A relaxing moment will refresh your spirit.", "You are about to make a breakthrough.",
-                "An important message is on its way.", "You will be guided to the right decision.", "Your happiness is contagious, keep smiling."
-            ];
-            
-            function convolutedFortunePicker() {
-                let rng = Math.random();
-                let index = Math.floor(rng * fortunes.length);
-                return fortunes[index];
-            }
-            
-            function revealFortune() {
-                setTimeout(() => {
-                    document.getElementById("fortune").classList.add("hidden");
-                    setTimeout(() => {
-                        document.getElementById("fortune").innerText = convolutedFortunePicker();
-                        document.getElementById("fortune").classList.remove("hidden");
-                    }, 1000);
-                }, 500);
-            }
-            
-            function changeBackground() {
-                let colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
-                document.body.style.background = colors[Math.floor(Math.random() * colors.length)];
-            }
+<script>
+function updateDateTime() {
+    const today = new Date();
+    const months = ["January", "February", "March", "April", "May", "June", 
+                    "July", "August", "September", "October", "November", "December"];
+    const month = months[today.getMonth()];
+    const day = today.getDate();
+    const year = today.getFullYear();
 
-            function shuffleText() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.transform = `rotate(${Math.random() * 360}deg)`;
-                setTimeout(() => {
-                    container.style.transform = 'rotate(0deg)';
-                }, 1000);
-            }
+    // Add "st", "nd", "rd", or "th" to the day
+    const daySuffix = (day % 10 === 1 && day !== 11) ? "st" : 
+                      (day % 10 === 2 && day !== 12) ? "nd" : 
+                      (day % 10 === 3 && day !== 13) ? "rd" : "th";
 
-            function toggleDarkMode() {
-                document.body.classList.toggle('dark-mode');
-                const container = document.getElementById("fortuneContainer");
-                container.classList.toggle('dark-mode');
-            }
+    const formattedDate = `${month} ${day}${daySuffix}, ${year}`;
 
-            function makeItRain() {
-                for (let i = 0; i < 10; i++) {
-                    const emoji = document.createElement('div');
-                    emoji.innerText = '🌟';
-                    emoji.style.position = 'fixed';
-                    emoji.style.left = Math.random() * 100 + 'vw';
-                    emoji.style.top = '-20px';
-                    emoji.style.fontSize = '24px';
-                    emoji.style.animation = `fall ${Math.random() * 2 + 1}s linear`;
-                    document.body.appendChild(emoji);
-                    setTimeout(() => emoji.remove(), 3000);
-                }
-            }
+    // Get time in 12-hour format
+    let hours = today.getHours();
+    let minutes = today.getMinutes().toString().padStart(2, '0');
+    let seconds = today.getSeconds().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 24-hour time to 12-hour
 
-            function bounceContainer() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "bounce 0.5s ease infinite";
-            }
+    const formattedTime = `${hours}:${minutes}:${seconds} ${ampm}`;
+    
+    // Update the date display
+    document.getElementById("date").innerText = formattedDate + " " + formattedTime;
+}
 
-            function makeRainbow() {
-                const text = document.getElementById("fortune");
-                text.style.background = "linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet)";
-                text.style.webkitBackgroundClip = "text";
-                text.style.webkitTextFillColor = "transparent";
-            }
+// Update date every second
+setInterval(updateDateTime, 1000);
+updateDateTime();
+    const fortunes = [
+    "You will step on a LEGO when you least expect it.",
+    "A traffic light will turn red the moment you approach it.",
+    "You will finally remember that thing you forgot—at 3 AM.",
+    "Your phone will have 1% battery when you need it most.",
+    "You will find a sock that has been missing for years, but not its pair.",
+    "A sneeze will escape just as you take a sip of water.",
+    "You will hear your name called, but no one actually said it.",
+    "Your Wi-Fi will mysteriously stop working the moment you're productive.",
+    "You will send a text to the wrong person today.",
+    "A bird will target your freshly washed car with precision.",
+    "You will accidentally wave back at someone who wasn’t waving at you.",
+    "Your headphone cord will get caught on a doorknob at the most dramatic moment.",
+    "You will drop your toast, and yes, it will land butter-side down.",
+    "Someone will tell you a story, and you’ll have to pretend you didn’t already hear it.",
+    "You will think of the perfect comeback… five hours too late.",
+    "Your grocery cart will have that one wonky wheel that insists on going rogue.",
+    "A stranger will hold the door for you from an awkwardly long distance away.",
+    "Your autocorrect will embarrass you in the most inconvenient way.",
+    "You will tell a joke, and nobody will hear it—except for one person who repeats it louder and gets all the laughs.",
+    "You will drop something, and it will roll just out of reach under the couch.",
+    "You will stub your toe on the same piece of furniture you always do.",
+    "A sneeze will build up but never come out, leaving you in suspense."];
 
-            function shakeScreen() {
-                document.body.style.animation = "shake 0.5s ease";
-                setTimeout(() => document.body.style.animation = "", 500);
-            }
+function tellFortune() {
+    const randomIndex = Math.floor(Math.random() * fortunes.length);
+    const fortune = fortunes[randomIndex];
+    document.getElementById('fortune').innerText = fortune;}
 
-            function matrixMode() {
-                document.body.style.backgroundColor = "black";
-                const text = document.getElementById("fortune");
-                text.style.color = "#00ff00";
-                text.style.textShadow = "0 0 5px #00ff00";
-            }
-
-            function disco() {
-                const interval = setInterval(() => {
-                    document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                }, 100);
-                setTimeout(() => clearInterval(interval), 3000);
-            }
-
-            function bubbles() {
-                for (let i = 0; i < 20; i++) {
-                    const bubble = document.createElement("div");
-                    bubble.className = "bubble";
-                    bubble.style.left = Math.random() * 100 + "vw";
-                    document.body.appendChild(bubble);
-                    setTimeout(() => bubble.remove(), 2000);
-                }
-            }
-
-            function tornado() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "spin 1s ease-in-out infinite";
-                setTimeout(() => container.style.animation = "", 3000);
-            }
-
-            function wave() {
-                const text = document.getElementById("fortune");
-                const letters = text.innerText.split('');
-                text.innerHTML = letters.map(letter => 
-                    `<span style="display:inline-block">${letter}</span>`
-                ).join('');
-                Array.from(text.children).forEach((span, i) => {
-                    span.style.animation = `wave 1s ease-in-out ${i * 0.1}s infinite`;
-                });
-            }
-
-            function pixel() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.filter = "pixelate(5px)";
-                setTimeout(() => container.style.filter = "", 2000);
-            }
-
-            function jelly() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "jelly 0.5s ease-in-out";
-                setTimeout(() => container.style.animation = "", 500);
-            }
-
-            function glitch() {
-                const text = document.getElementById("fortune");
-                text.style.animation = "glitch 0.3s infinite";
-                setTimeout(() => text.style.animation = "", 2000);
-            }
-
-            function explosion() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "explode 0.5s ease-out";
-                setTimeout(() => container.style.animation = "", 500);
-            }
-
-            function mirror() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.transform = "scaleX(-1)";
-                setTimeout(() => container.style.transform = "", 2000);
-            }
-
-            function neon() {
-                const text = document.getElementById("fortune");
-                text.style.textShadow = "0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff";
-                text.style.color = "#fff";
-                setTimeout(() => {
-                    text.style.textShadow = "";
-                    text.style.color = "";
-                }, 3000);
-            }
-
-            function grow() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "grow 0.5s ease-in-out";
-                setTimeout(() => container.style.animation = "", 500);
-            }
-
-            function shrink() {
-                const container = document.getElementById("fortuneContainer");
-                container.style.animation = "shrink 0.5s ease-in-out";
-                setTimeout(() => container.style.animation = "", 500);
-            }
-
-            // Add new styles dynamically
-            const styleSheet = document.createElement('style');
-            styleSheet.textContent = `
-                @keyframes fall {
-                    to { transform: translateY(100vh); }
-                }
-                .dark-mode {
-                    background: #222 !important;
-                    color: #fff !important;
-                }
-                #fortuneContainer {
-                    transition: transform 1s;
-                }
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-20px); }
-                }
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-10px); }
-                    75% { transform: translateX(10px); }
-                }
-                .bubble {
-                    position: fixed;
-                    width: 20px;
-                    height: 20px;
-                    background: rgba(255, 255, 255, 0.5);
-                    border-radius: 50%;
-                    animation: float 2s ease-in;
-                }
-                @keyframes float {
-                    to { transform: translateY(-100vh); }
-                }
-                @keyframes spin {
-                    from { transform: rotate(0deg) scale(1); }
-                    to { transform: rotate(720deg) scale(0.5); }
-                }
-                @keyframes wave {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-20px); }
-                }
-                @keyframes jelly {
-                    0%, 100% { transform: scale(1); }
-                    25% { transform: scale(0.9, 1.1); }
-                    50% { transform: scale(1.1, 0.9); }
-                    75% { transform: scale(0.95, 1.05); }
-                }
-                @keyframes glitch {
-                    0% { transform: translate(0); }
-                    20% { transform: translate(-5px, 5px); }
-                    40% { transform: translate(-5px, -5px); }
-                    60% { transform: translate(5px, 5px); }
-                    80% { transform: translate(5px, -5px); }
-                    100% { transform: translate(0); }
-                }
-                @keyframes explode {
-                    0% { transform: scale(1); opacity: 1; }
-                    100% { transform: scale(2); opacity: 0; }
-                }
-                @keyframes grow {
-                    to { transform: scale(1.5); }
-                }
-                @keyframes shrink {
-                    to { transform: scale(0.5); }
-                }
-            `;
-            document.head.appendChild(styleSheet);
-            
-            window.revealFortune = revealFortune;
-            window.changeBackground = changeBackground;
-            window.shuffleText = shuffleText;
-            window.toggleDarkMode = toggleDarkMode;
-            window.makeItRain = makeItRain;
-            window.bounceContainer = bounceContainer;
-            window.makeRainbow = makeRainbow;
-            window.shakeScreen = shakeScreen;
-            window.matrixMode = matrixMode;
-            window.disco = disco;
-            window.bubbles = bubbles;
-            window.tornado = tornado;
-            window.wave = wave;
-            window.pixel = pixel;
-            window.jelly = jelly;
-            window.glitch = glitch;
-            window.explosion = explosion;
-            window.mirror = mirror;
-            window.neon = neon;
-            window.grow = grow;
-            window.shrink = shrink;
-
-            // Add random mystical symbols that float around
-            function addMysticalSymbols() {
-                const symbols = '✧☆✯⋆⭐️✨⚝✺❂☀︎★';
-                const container = document.getElementById("fortuneContainer");
-                
-                setInterval(() => {
-                    const symbol = document.createElement('div');
-                    symbol.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                    symbol.style.position = 'fixed';
-                    symbol.style.left = Math.random() * window.innerWidth + 'px';
-                    symbol.style.top = Math.random() * window.innerHeight + 'px';
-                    symbol.style.fontSize = '20px';
-                    symbol.style.opacity = '0.6';
-                    symbol.style.animation = 'floatAround 3s ease-in-out infinite';
-                    document.body.appendChild(symbol);
-                    
-                    setTimeout(() => symbol.remove(), 3000);
-                }, 2000);
-            }
-
-            // Add ambient sound effects
-            function addAmbientSounds() {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                function playMysticalSound() {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(Math.random() * 200 + 200, audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.start();
-                    oscillator.stop(audioContext.currentTime + 1);
-                }
-
-                document.getElementById("fortuneContainer").addEventListener('mouseover', playMysticalSound);
-            }
-
-            // Auto-changing color theme
-            function startColorCycle() {
-                const hues = [0, 60, 120, 180, 240, 300];
-                let currentIndex = 0;
-                
-                setInterval(() => {
-                    document.body.style.backgroundColor = `hsl(${hues[currentIndex]}, 70%, 90%)`;
-                    currentIndex = (currentIndex + 1) % hues.length;
-                }, 5000);
-            }
-
-            // Initialize new features
-            addMysticalSymbols();
-            addAmbientSounds();
-            startColorCycle();
-
-            // Add mystical border effect to fortune box
-            document.getElementById("fortuneContainer").classList.add("mystical-border");
-            
-            // Add fortune counter
-            let fortuneCount = 0;
-            window.revealFortune = function() {
-                fortuneCount++;
-                originalRevealFortune();
-                if (fortuneCount % 10 === 0) {
-                    alert(`You've revealed ${fortuneCount} fortunes! The spirits are pleased!`);
-                }
-            };
-
-            // Create floating crystal ball that follows cursor
-            function addCrystalBall() {
-                const ball = document.createElement('div');
-                ball.className = 'crystal-ball';
-                document.body.appendChild(ball);
-
-                document.addEventListener('mousemove', (e) => {
-                    ball.style.display = 'block';
-                    ball.style.left = e.clientX - 50 + 'px';
-                    ball.style.top = e.clientY - 50 + 'px';
-                });
-            }
-
-            // Add wisdom meter
-            function addWisdomMeter() {
-                const meter = document.createElement('div');
-                meter.className = 'wisdom-meter';
-                const fill = document.createElement('div');
-                fill.className = 'wisdom-fill';
-                meter.appendChild(fill);
-                document.body.appendChild(meter);
-
-                let wisdom = 0;
-                setInterval(() => {
-                    wisdom = Math.min(100, wisdom + 1);
-                    fill.style.width = wisdom + '%';
-                }, 1000);
-
-                return () => wisdom;
-            }
-
-            // Random fortune flavor text
-            const flavorTexts = [
-                "The stars align...", 
-                "The crystal ball swirls...",
-                "The spirits whisper...",
-                "The cosmos speaks...",
-                "The mists part..."
-            ];
-
-            // Enhanced fortune reveal with flavor
-            const originalRevealFortune = window.revealFortune;
-            window.revealFortune = function() {
-                const flavor = document.createElement('div');
-                flavor.innerText = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
-                flavor.style.opacity = '0';
-                document.getElementById('fortuneContainer').prepend(flavor);
-
-                // Fade in flavor text
-                setTimeout(() => {
-                    flavor.style.transition = 'opacity 0.5s';
-                    flavor.style.opacity = '1';
-                    
-                    // Then reveal fortune
-                    setTimeout(() => {
-                        flavor.style.opacity = '0';
-                        originalRevealFortune();
-                        setTimeout(() => flavor.remove(), 500);
-                        addSparkles();
-                    }, 1500);
-                }, 100);
-            };
-
-            // Add sparkles around fortune
-            function addSparkles() {
-                const container = document.getElementById('fortuneContainer');
-                for(let i = 0; i < 5; i++) {
-                    const sparkle = document.createElement('div');
-                    sparkle.className = 'fortune-sparkle';
-                    sparkle.innerHTML = '✨';
-                    sparkle.style.position = 'absolute';
-                    sparkle.style.left = Math.random() * 100 + '%';
-                    sparkle.style.top = Math.random() * 100 + '%';
-                    container.appendChild(sparkle);
-                    setTimeout(() => sparkle.remove(), 2000);
-                }
-            }
-
-            // Random mystical quotes that appear and fade
-            function addRandomQuotes() {
-                const quotes = [
-                    "As above, so below...",
-                    "The future is fluid...",
-                    "Time is an illusion...",
-                    "Destiny awaits...",
-                    "The wheel turns..."
-                ];
-
-                setInterval(() => {
-                    const quote = document.createElement('div');
-                    quote.style.position = 'fixed';
-                    quote.style.left = Math.random() * 80 + 10 + '%';
-                    quote.style.top = Math.random() * 80 + 10 + '%';
-                    quote.style.opacity = '0';
-                    quote.style.color = '#' + Math.floor(Math.random()*16777215).toString(16);
-                    quote.style.fontStyle = 'italic';
-                    quote.style.transition = 'opacity 2s';
-                    quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
-                    document.body.appendChild(quote);
-
-                    requestAnimationFrame(() => {
-                        quote.style.opacity = '0.7';
-                        setTimeout(() => {
-                            quote.style.opacity = '0';
-                            setTimeout(() => quote.remove(), 2000);
-                        }, 2000);
-                    });
-                }, 5000);
-            }
-
-            // Initialize new features
-            addCrystalBall();
-            const getWisdom = addWisdomMeter();
-            addRandomQuotes();
-
-            // Add keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if(e.code === 'Space') {
-                    revealFortune();
-                } else if(e.code === 'KeyD') {
-                    toggleDarkMode();
-                } else if(e.code === 'KeyR') {
-                    makeItRain();
-                }
-            });
-
-            // Fix duplicate fortune counter and revealFortune override
-            (function() {
-                // Remove duplicate fortune counter code
-                let fortuneCount = 0;
-                const originalRevealFortune = window.revealFortune;
-                
-                // Combine both fortune reveal enhancements into one
-                window.revealFortune = function() {
-                    fortuneCount++;
-                    
-                    // Add flavor text
-                    const flavor = document.createElement('div');
-                    flavor.innerText = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
-                    flavor.style.opacity = '0';
-                    document.getElementById('fortuneContainer').prepend(flavor);
-            
-                    // Fade in flavor text then reveal fortune
-                    setTimeout(() => {
-                        flavor.style.transition = 'opacity 0.5s';
-                        flavor.style.opacity = '1';
-                        
-                        setTimeout(() => {
-                            flavor.style.opacity = '0';
-                            originalRevealFortune();
-                            setTimeout(() => flavor.remove(), 500);
-                            addSparkles();
-                            
-                            // Check fortune count milestone
-                            if (fortuneCount % 10 === 0) {
-                                alert(`You've revealed ${fortuneCount} fortunes! The spirits are pleased!`);
-                            }
-                        }, 1500);
-                    }, 100);
-                };
-            
-                // Fix missing styles for floating elements
-                const additionalStyles = `
-                    .floating-symbol {
-                        position: fixed;
-                        pointer-events: none;
-                        z-index: 100;
-                        animation: floatAround 3s ease-in-out infinite;
-                    }
-                    
-                    .mystical-quote {
-                        position: fixed;
-                        font-style: italic;
-                        pointer-events: none;
-                        z-index: 101;
-                        transition: opacity 2s;
-                    }
-                `;
-                styleSheet.textContent += additionalStyles;
-            
-                // Fix wisdom meter to prevent multiple instances
-                if (!document.querySelector('.wisdom-meter')) {
-                    addWisdomMeter();
-                }
-            
-                // Fix crystal ball to prevent multiple instances
-                if (!document.querySelector('.crystal-ball')) {
-                    addCrystalBall();
-                }
-            
-                // Fix ambient sounds to prevent multiple listeners
-                const fortuneContainer = document.getElementById("fortuneContainer");
-                fortuneContainer.removeEventListener('mouseover', playMysticalSound);
-                fortuneContainer.addEventListener('mouseover', playMysticalSound);
-            })();
-        })();
-    </script>
+function changeBackground() {
+    document.body.style.backgroundColor = document.getElementById('bg-color').value;
+}
+function createStars() {
+    const starContainer = document.querySelector('.stars');
+    for (let i = 0; i < 100; i++) {
+        let star = document.createElement('div');
+        star.classList.add('star');
+        star.style.top = Math.random() * 100 + "vh";
+        star.style.left = Math.random() * 100 + "vw";
+        star.style.animationDuration = (Math.random() * 3 + 2) + "s";
+        console.log(star.style.animationDuration);
+        starContainer.appendChild(star);
+    }
+}
+window.onload = createStars;
+</script>
 </body>
 </html>
