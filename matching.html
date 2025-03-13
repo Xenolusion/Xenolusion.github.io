@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Match Challenge</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        .waterfall-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        .waterfall-line {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, rgba(0,255,255,0), #0ff, rgba(0,255,255,0));
+            height: 50px;
+            top: -50px;
+            opacity: 0.7;
+        }
+        
+        #game-container {
+            width: 400px;
+            background-color: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 140, 255, 0.5);
+            text-align: center;
+        }
+        
+        #info-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        #score, #timer, #level {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .color-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .color-cell:hover {
+            transform: scale(1.05);
+        }
+        
+        #target-color {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            border: 3px solid white;
+        }
+        
+        #instructions {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #high-scores {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        #high-scores h3 {
+            margin-top: 0;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="waterfall-bg" id="waterfall-bg"></div>
+    
+    <div id="game-container">
+        <h1>Color Match Challenge</h1>
+        <div id="info-panel">
+            <div id="score">Score: 0</div>
+            <div id="level">Level: 1</div>
+            <div id="timer">Time: 30s</div>
+        </div>
+        
+        <div id="instructions">Find the cell that matches this color:</div>
+        <div id="target-color"></div>
+        
+        <div class="color-grid" id="color-grid"></div>
+        
+        <button id="start-button">Start Game</button>
+        
+        <div id="high-scores" class="hidden">
+            <h3>High Scores</h3>
+            <ul id="scores-list"></ul>
+        </div>
+    </div>
+    
+    <div id="game-over" class="game-over hidden">
+        <h2>Game Over!</h2>
+        <div id="final-score"></div>
+        <div id="new-high-score" class="hidden">New High Score!</div>
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" class="hidden">
+        <button id="save-score" class="hidden">Save Score</button>
+        <button id="play-again">Play Again</button>
+    </div>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let level = 1;
+        let timer = 30;
+        let gameActive = false;
+        let timerInterval;
+        let targetColor;
+        let correctCellIndex;
+        let highScores = JSON.parse(localStorage.getItem('colorMatchHighScores')) || [];
+        let waterfallLines = [];
+        
+        // DOM elements
+        const gameContainer = document.getElementById('game-container');
+        const colorGrid = document.getElementById('color-grid');
+        const targetColorDisplay = document.getElementById('target-color');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const timerDisplay = document.getElementById('timer');
+        const startButton = document.getElementById('start-button');
+        const gameOverPanel = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const newHighScoreDisplay = document.getElementById('new-high-score');
+        const playerNameInput = document.getElementById('player-name');
+        const saveScoreButton = document.getElementById('save-score');
+        const playAgainButton = document.getElementById('play-again');
+        const highScoresPanel = document.getElementById('high-scores');
+        const scoresList = document.getElementById('scores-list');
+        const waterfallBg = document.getElementById('waterfall-bg');
+        
+        // Create stars in background
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            const starCount = 100;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Random position
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // Random size
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // Random delay for animation
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // Create waterfall effect
+        function createWaterfall() {
+            // Clear any existing waterfall lines
+            waterfallBg.innerHTML = '';
+            waterfallLines = [];
+            
+            // Create initial waterfall lines
+            const lineCount = 150;
+            for (let i = 0; i < lineCount; i++) {
+                createWaterfallLine();
+            }
+            
+            // Animate waterfall
+            animateWaterfall();
+        }
+        
+        function createWaterfallLine() {
+            const line = document.createElement('div');
+            line.classList.add('waterfall-line');
+            
+            // Random position, speed, length and color
+            const xPos = Math.random() * 100;
+            const speed = Math.random() * 3 + 1;
+            const length = Math.random() * 50 + 30;
+            const opacity = Math.random() * 0.7 + 0.3;
+            const hue = Math.floor(Math.random() * 60) + 170; // Blue to cyan range
+            
+            line.style.left = `${xPos}%`;
+            line.style.height = `${length}px`;
+            line.style.opacity = opacity;
+            line.style.background = `linear-gradient(to bottom, 
+                rgba(0,0,0,0), 
+                hsl(${hue}, 100%, 60%), 
+                rgba(0,0,0,0))`;
+            
+            waterfallBg.appendChild(line);
+            
+            // Add to array with its properties
+            waterfallLines.push({
+                element: line,
+                speed: speed,
+                position: -length,
+                length: length
+            });
+            
+            return line;
+        }
+        
+        function animateWaterfall() {
+            // Animation frame for waterfall movement
+            function updateWaterfall() {
+                const viewportHeight = window.innerHeight;
+                
+                // Move each line down
+                waterfallLines.forEach((line, index) => {
+                    line.position += line.speed;
+                    line.element.style.top = `${line.position}px`;
+                    
+                    // If line has moved off screen, reset it
+                    if (line.position > viewportHeight) {
+                        line.position = -line.length;
+                        line.element.style.top = `${line.position}px`;
+                        line.element.style.left = `${Math.random() * 100}%`;
+                    }
+                });
+                
+                // Create new lines occasionally
+                if (Math.random() < 0.1) {
+                    const newLine = createWaterfallLine();
+                }
+                
+                requestAnimationFrame(updateWaterfall);
+            }
+            
+            // Start animation
+            requestAnimationFrame(updateWaterfall);
+        }
+        
+        // Generate a random RGB color
+        function generateRandomColor() {
+            const r = Math.floor(Math.random() * 256);
+            const g = Math.floor(Math.random() * 256);
+            const b = Math.floor(Math.random() * 256);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        // Generate a similar color based on difficulty level
+        function generateSimilarColor(originalColor, difficulty) {
+            // Parse the original RGB values
+            const rgbMatch = originalColor.match(/rgb\((\d+), (\d+), (\d+)\)/);
+            const r = parseInt(rgbMatch[1]);
+            const g = parseInt(rgbMatch[2]);
+            const b = parseInt(rgbMatch[3]);
+            
+            // Calculate maximum variance based on difficulty (1-10)
+            // Lower levels = more variance, higher levels = less variance
+            const maxVariance = Math.max(10, 100 - (difficulty * 9));
+            
+            // Generate variance within the allowed range
+            const rVariance = Math.floor((Math.random() * maxVariance * 2) - maxVariance);
+            const gVariance = Math.floor((Math.random() * maxVariance * 2) - maxVariance);
+            const bVariance = Math.floor((Math.random() * maxVariance * 2) - maxVariance);
+            
+            // Ensure values stay within 0-255 range
+            const newR = Math.max(0, Math.min(255, r + rVariance));
+            const newG = Math.max(0, Math.min(255, g + gVariance));
+            const newB = Math.max(0, Math.min(255, b + bVariance));
+            
+            return `rgb(${newR}, ${newG}, ${newB})`;
+        }
+        
+        // Initialize the color grid
+        function initializeGrid() {
+            colorGrid.innerHTML = '';
+            
+            // Number of cells based on level
+            const gridSize = Math.min(25, 4 + level);
+            const gridColumns = Math.ceil(Math.sqrt(gridSize));
+            
+            colorGrid.style.gridTemplateColumns = `repeat(${gridColumns}, 1fr)`;
+            
+            // Generate target color
+            targetColor = generateRandomColor();
+            targetColorDisplay.style.backgroundColor = targetColor;
+            
+            // Randomly assign correct cell
+            correctCellIndex = Math.floor(Math.random() * gridSize);
+            
+            // Create grid cells
+            for (let i = 0; i < gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('color-cell');
+                
+                // Assign color (correct or similar)
+                if (i === correctCellIndex) {
+                    cell.style.backgroundColor = targetColor;
+                } else {
+                    cell.style.backgroundColor = generateSimilarColor(targetColor, level);
+                }
+                
+                // Add click event
+                cell.addEventListener('click', () => handleCellClick(i));
+                
+                colorGrid.appendChild(cell);
+            }
+        }
+        
+        // Handle cell click
+        function handleCellClick(index) {
+            if (!gameActive) return;
+            
+            if (index === correctCellIndex) {
+                // Correct match
+                score += Math.floor(10 * (1 + level/10) * (timer/10));
+                scoreDisplay.textContent = `Score: ${score}`;
+                
+                // Level up every 3 correct answers
+                if (score >= level * 100) {
+                    level++;
+                    levelDisplay.textContent = `Level: ${level}`;
+                    
+                    // Add time bonus for level up
+                    timer = Math.min(60, timer + 5);
+                    timerDisplay.textContent = `Time: ${timer}s`;
+                }
+                
+                // Generate new colors
+                initializeGrid();
+                
+            } else {
+                // Wrong match - penalty
+                timer = Math.max(1, timer - 3);
+                timerDisplay.textContent = `Time: ${timer}s`;
+                
+                // Visual feedback for wrong choice
+                const cells = document.querySelectorAll('.color-cell');
+                cells[index].style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    cells[index].style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+        
+        // Start game function
+        function startGame() {
+            score = 0;
+            level = 1;
+            timer = 30;
+            gameActive = true;
+            
+            // Update displays
+            scoreDisplay.textContent = `Score: ${score}`;
+            levelDisplay.textContent = `Level: ${level}`;
+            timerDisplay.textContent = `Time: ${timer}s`;
+            
+            // Initialize grid
+            initializeGrid();
+            
+            // Start timer
+            timerInterval = setInterval(() => {
+                timer--;
+                timerDisplay.textContent = `Time: ${timer}s`;
+                
+                if (timer <= 0) {
+                    endGame();
+                }
+                
+                if (timer <= 5) {
+                    timerDisplay.classList.add('pulse');
+                } else {
+                    timerDisplay.classList.remove('pulse');
+                }
+            }, 1000);
+            
+            // Hide start button, show grid
+            startButton.classList.add('hidden');
+            colorGrid.classList.remove('hidden');
+            highScoresPanel.classList.add('hidden');
+        }
+        
+        // End game function
+        function endGame() {
+            clearInterval(timerInterval);
+            gameActive = false;
+            
+            // Show game over panel
+            gameOverPanel.classList.remove('hidden');
+            finalScoreDisplay.textContent = `Your score: ${score}`;
+            
+            // Check if it's a high score
+            const isHighScore = highScores.length < 5 || score > highScores[highScores.length - 1].score;
+            
+            if (isHighScore) {
+                newHighScoreDisplay.classList.remove('hidden');
+                playerNameInput.classList.remove('hidden');
+                saveScoreButton.classList.remove('hidden');
+            } else {
+                newHighScoreDisplay.classList.add('hidden');
+                playerNameInput.classList.add('hidden');
+                saveScoreButton.classList.add('hidden');
+            }
+        }
+        
+        // Save high score
+        function saveHighScore() {
+            const playerName = playerNameInput.value.trim() || 'Anonymous';
+            
+            // Add new score
+            highScores.push({ name: playerName, score: score });
+            
+            // Sort and keep only top 5
+            highScores.sort((a, b) => b.score - a.score);
+            if (highScores.length > 5) {
+                highScores.pop();
+            }
+            
+            // Save to local storage
+            localStorage.setItem('colorMatchHighScores', JSON.stringify(highScores));
+            
+            // Update high scores display
+            updateHighScoresDisplay();
+            
+            // Hide input and save button
+            playerNameInput.classList.add('hidden');
+            saveScoreButton.classList.add('hidden');
+        }
+        
+        // Update high scores display
+        function updateHighScoresDisplay() {
+            scoresList.innerHTML = '';
+            
+            if (highScores.length === 0) {
+                scoresList.innerHTML = '<li>No high scores yet!</li>';
+                return;
+            }
+            
+            highScores.forEach((entry, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${index + 1}. ${entry.name}: ${entry.score}`;
+                scoresList.appendChild(listItem);
+            });
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', () => {
+            // Replace the existing functionality with a simple page reload
+            window.location.reload();
+        });
+        saveScoreButton.addEventListener('click', saveHighScore);
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            createStars();
+            createWaterfall();
+            updateHighScoresDisplay();
+            highScoresPanel.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
