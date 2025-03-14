@@ -862,8 +862,8 @@
         
         // Initialize grid
         function initializeGrid() {
-            grid = new Array(width * height).fill(EMPTY);
-            colors = new Array(width * height).fill(0);
+            grid = new Uint8Array(width * height).fill(EMPTY);
+            colors = new Array(width * height).fill('#ff4500');
         }
         
         // First set up the window resize listener
@@ -1003,10 +1003,20 @@
             }
         }
         
-        // Update sand physics
+        // Add chunked processing for sand updates
+        // This is the biggest optimization - split the grid into chunks for processing
+        const CHUNK_SIZE = 4; // Process only 1/4 of the grid in each frame
+
         function updateSand() {
+            // Track which frame we're on to process different chunks
+            updateSand.frameCount = (updateSand.frameCount || 0) + 1;
+            const chunk = updateSand.frameCount % CHUNK_SIZE;
+            
             // Update from bottom to top for gravity simulation
             for (let y = height - 2; y >= 0; y--) {
+                // Process only rows in the current chunk
+                if (y % CHUNK_SIZE !== chunk) continue;
+                
                 for (let x = 0; x < width; x++) {
                     const currentIndex = getIndex(x, y);
                     
@@ -1025,37 +1035,6 @@
                                 continue;
                             }
                             
-                            // Special obstacle handling
-                            if (isInBounds(x, y + 1) && grid[downIndex] === OBSTACLE) {
-                                if (physicsSettings.obstacleType === 'bounce') {
-                                    // Bounce physics - more pronounced with higher values
-                                    const bounceHeight = Math.max(1, Math.floor(3 * physicsSettings.gravity));
-                                    const bounceX = x + (Math.random() > 0.5 ? 1 : -1);
-                                    const bounceY = Math.max(0, y - bounceHeight);
-                                    
-                                    if (isInBounds(bounceX, bounceY) && grid[getIndex(bounceX, bounceY)] === EMPTY) {
-                                        grid[currentIndex] = EMPTY;
-                                        grid[getIndex(bounceX, bounceY)] = SAND;
-                                        colors[getIndex(bounceX, bounceY)] = color;
-                                        continue;
-                                    }
-                                }
-                                
-                                if (physicsSettings.obstacleType === 'funnel') {
-                                    // Funnel physics - stronger pull with higher values
-                                    const centerDiff = x - width / 2;
-                                    const funnelForce = Math.min(3, Math.max(1, Math.ceil(3 * physicsSettings.spreadFactor)));
-                                    const funnelX = centerDiff > 0 ? x - funnelForce : x + funnelForce;
-                                    
-                                    if (isInBounds(funnelX, y) && grid[getIndex(funnelX, y)] === EMPTY) {
-                                        grid[currentIndex] = EMPTY;
-                                        grid[getIndex(funnelX, y)] = SAND;
-                                        colors[getIndex(funnelX, y)] = color;
-                                        continue;
-                                    }
-                                }
-                            }
-                            
                             // The probability of going left or right depends on the spread factor
                             const goesLeft = Math.random() < 0.5;
                             
@@ -1069,26 +1048,6 @@
                                 grid[currentIndex] = EMPTY;
                                 grid[spreadIndex] = SAND;
                                 colors[spreadIndex] = color;
-                                continue;
-                            }
-                        }
-                        
-                        // Sideways movement based on inertia
-                        if (Math.random() < physicsSettings.inertia) {
-                            // Try both directions with randomized preference
-                            const directions = Math.random() < 0.5 ? [-1, 1] : [1, -1];
-                            
-                            for (const dir of directions) {
-                                const sideIndex = getIndex(x + dir, y);
-                                if (isInBounds(x + dir, y) && grid[sideIndex] === EMPTY) {
-                                    // Apply friction - higher friction means less movement
-                                    if (Math.random() > physicsSettings.friction) {
-                                        grid[currentIndex] = EMPTY;
-                                        grid[sideIndex] = SAND;
-                                        colors[sideIndex] = color;
-                                        break;
-                                    }
-                                }
                             }
                         }
                     }
@@ -1098,53 +1057,56 @@
         
         // Draw the sand
         function drawSand() {
+            // Use a pixel buffer instead of calling fillRect for each particle
             const imageData = ctx.createImageData(width, height);
             const data = imageData.data;
             
+            // Fill the buffer in one go
             for (let i = 0; i < grid.length; i++) {
                 const dataIndex = i * 4;
                 
-                if (grid[i] === SAND) {
-                    const color = hexToRgb(colors[i]);
-                    data[dataIndex] = color.r;
-                    data[dataIndex + 1] = color.g;
-                    data[dataIndex + 2] = color.b;
-                    data[dataIndex + 3] = 255; // Fully opaque
-                } else if (grid[i] === OBSTACLE) {
-                    // Draw obstacles as dark gray
-                    data[dataIndex] = 50;
-                    data[dataIndex + 1] = 50;
-                    data[dataIndex + 2] = 50;
-                    data[dataIndex + 3] = 255;
-                } else if (grid[i] === WATER) {
-                    // Draw water with slight transparency
-                    data[dataIndex] = 30;
-                    data[dataIndex + 1] = 144;
-                    data[dataIndex + 2] = 255;
-                    data[dataIndex + 3] = 200;
-                } else if (grid[i] === FIRE) {
-                    // Find the fire particle to get its color
-                    let fireColor = { r: 255, g: 100, b: 0 };
-                    
-                    // Use default fire color if we can't find the specific particle
-                    // (In a full implementation you'd track this better)
-                    
-                    data[dataIndex] = fireColor.r;
-                    data[dataIndex + 1] = fireColor.g;
-                    data[dataIndex + 2] = fireColor.b;
-                    data[dataIndex + 3] = 255;
-                } else if (grid[i] === PLANT) {
-                    // Green for plants
-                    data[dataIndex] = 40;
-                    data[dataIndex + 1] = 180;
-                    data[dataIndex + 2] = 40;
-                    data[dataIndex + 3] = 255;
+                switch (grid[i]) {
+                    case EMPTY:
+                        // Leave transparent
+                        data[dataIndex + 3] = 0;
+                        break;
+                    case SAND:
+                        const color = hexToRgb(colors[i] || '#ff4500');
+                        data[dataIndex] = color.r;
+                        data[dataIndex + 1] = color.g;
+                        data[dataIndex + 2] = color.b;
+                        data[dataIndex + 3] = 255;
+                        break;
+                    case OBSTACLE:
+                        data[dataIndex] = 50;
+                        data[dataIndex + 1] = 50;
+                        data[dataIndex + 2] = 50;
+                        data[dataIndex + 3] = 255;
+                        break;
+                    case WATER:
+                        data[dataIndex] = 30;
+                        data[dataIndex + 1] = 144;
+                        data[dataIndex + 2] = 255;
+                        data[dataIndex + 3] = 200;
+                        break;
+                    case FIRE:
+                        data[dataIndex] = 255;
+                        data[dataIndex + 1] = 100;
+                        data[dataIndex + 2] = 0;
+                        data[dataIndex + 3] = 255;
+                        break;
+                    case PLANT:
+                        data[dataIndex] = 40;
+                        data[dataIndex + 1] = 180;
+                        data[dataIndex + 2] = 40;
+                        data[dataIndex + 3] = 255;
+                        break;
                 }
             }
             
             ctx.putImageData(imageData, 0, 0);
             
-            // Draw tornado effect if active
+            // Draw tornado effect separately since it's a special effect
             if (tornadoActive) {
                 ctx.beginPath();
                 ctx.arc(tornadoX, tornadoY, tornadoRadius, 0, Math.PI * 2);
@@ -1152,9 +1114,9 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Draw swirl effect
-                for (let i = 0; i < 8; i++) {
-                    const angle = (Date.now() / 200 + i * Math.PI / 4) % (Math.PI * 2);
+                // Draw swirl effect (simplified for performance)
+                for (let i = 0; i < 4; i++) { // Reduced from 8 to 4 swirls
+                    const angle = (Date.now() / 200 + i * Math.PI / 2) % (Math.PI * 2);
                     const x1 = tornadoX + Math.cos(angle) * tornadoRadius * 0.5;
                     const y1 = tornadoY + Math.sin(angle) * tornadoRadius * 0.5;
                     const x2 = tornadoX + Math.cos(angle) * tornadoRadius;
@@ -1176,18 +1138,27 @@
         }
         
         // Convert hex color to RGB
+        // More efficient hexToRgb function 
+        // Use a cache to avoid recalculating the same colors repeatedly
+        const colorCache = {};
         function hexToRgb(hex) {
+            if (colorCache[hex]) {
+                return colorCache[hex];
+            }
+            
             // Remove the # if present
             hex = hex.replace(/^#/, '');
             
             // Parse the hex value
             const bigint = parseInt(hex, 16);
-            
-            return {
+            const result = {
                 r: (bigint >> 16) & 255,
                 g: (bigint >> 8) & 255,
                 b: bigint & 255
             };
+            
+            colorCache[hex] = result;
+            return result;
         }
         
         // Player variables
@@ -1421,7 +1392,23 @@
         }
 
         // Animation loop
-        function animate() {
+        // Optimize the animation function with requestAnimationFrame throttling
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+
+        function animate(currentTime) {
+            // Request the next frame immediately
+            requestAnimationFrame(animate);
+            
+            // Throttle to target FPS
+            const elapsed = currentTime - lastFrameTime;
+            if (elapsed < frameInterval) return;
+            
+            // Calculate actual FPS for debugging
+            const actualFPS = 1000 / elapsed;
+            lastFrameTime = currentTime - (elapsed % frameInterval);
+            
             try {
                 updateSand();
                 updateWater();
@@ -1444,12 +1431,10 @@
             } catch (e) {
                 console.error('Error in animation loop:', e);
             }
-            
-            requestAnimationFrame(animate);
         }
         
-        // Start animation
-        animate();
+        // Start animation with proper timestamp
+        requestAnimationFrame(animate);
         
         // Event listeners for canvas
         canvas.addEventListener('mousedown', (e) => {
@@ -1720,9 +1705,27 @@
             }
         }
 
+        // Optimize water updates with chunked processing
         function updateWater() {
+            // Track which frame we're on
+            updateWater.frameCount = (updateWater.frameCount || 0) + 1;
+            const chunk = updateWater.frameCount % CHUNK_SIZE;
+            
             // Update from bottom to top for water simulation
             for (let y = height - 1; y >= 0; y--) {
+                // Process only rows in the current chunk
+                if (y % CHUNK_SIZE !== chunk) continue;
+                
+                // Skip empty rows for better performance
+                let hasWater = false;
+                for (let x = 0; x < width; x++) {
+                    if (grid[getIndex(x, y)] === WATER) {
+                        hasWater = true;
+                        break;
+                    }
+                }
+                if (!hasWater) continue;
+                
                 // Go left to right AND right to left on alternating rows for more natural flow
                 const direction = (y % 2 === 0) ? 1 : -1;
                 const startX = (direction === 1) ? 0 : width - 1;
@@ -1748,8 +1751,8 @@
                             continue;
                         }
                         
-                        // Try to move sideways if can't move down
-                        if (Math.random() < 0.3) {
+                        // Try to move sideways (less often for performance)
+                        if (Math.random() < 0.2) {
                             const spreadDirection = Math.random() < 0.5 ? -1 : 1;
                             if (isInBounds(x + spreadDirection, y) && grid[getIndex(x + spreadDirection, y)] === EMPTY) {
                                 grid[getIndex(x + spreadDirection, y)] = WATER;
@@ -1771,12 +1774,31 @@
             }
         }
 
+        // Optimize fire updates with chunked processing
         function updateFire() {
-            // Store positions of new fire to be added after the iteration
+            // Limit number of new fire positions for performance
             let newFirePositions = [];
+            const maxNewFires = 20; // Limit for performance
+            
+            // Track which frame we're on
+            updateFire.frameCount = (updateFire.frameCount || 0) + 1;
+            const chunk = updateFire.frameCount % CHUNK_SIZE;
             
             // Update from top to bottom for fire (since fire rises)
             for (let y = 0; y < height; y++) {
+                // Process only rows in the current chunk
+                if (y % CHUNK_SIZE !== chunk) continue;
+                
+                // Skip empty rows for better performance
+                let hasFire = false;
+                for (let x = 0; x < width; x++) {
+                    if (grid[getIndex(x, y)] === FIRE) {
+                        hasFire = true;
+                        break;
+                    }
+                }
+                if (!hasFire) continue;
+                
                 for (let x = 0; x < width; x++) {
                     const index = getIndex(x, y);
                     
@@ -1797,30 +1819,25 @@
                             }
                         }
                         
-                        // Spread fire
-                        if (Math.random() < 0.05) {
-                            for (let dy = -1; dy <= 1; dy++) {
-                                for (let dx = -1; dx <= 1; dx++) {
-                                    if (dx === 0 && dy === 0) continue;
-                                    
-                                    const nx = x + dx;
-                                    const ny = y + dy;
-                                    
-                                    if (!isInBounds(nx, ny)) continue;
-                                    if (grid[getIndex(nx, ny)] === EMPTY && Math.random() < 0.2) {
-                                        newFirePositions.push({x: nx, y: ny});
-                                    } else if (grid[getIndex(nx, ny)] === PLANT) {
-                                        grid[getIndex(nx, ny)] = FIRE; // Fire burns plants
-                                    }
-                                }
+                        // Spread fire (much less often for performance)
+                        if (Math.random() < 0.01 && newFirePositions.length < maxNewFires) {
+                            const dx = Math.random() < 0.5 ? -1 : 1;
+                            const nx = x + dx;
+                            
+                            if (isInBounds(nx, y) && grid[getIndex(nx, y)] === EMPTY) {
+                                newFirePositions.push({x: nx, y: y});
+                            } else if (isInBounds(nx, y) && grid[getIndex(nx, y)] === PLANT) {
+                                grid[getIndex(nx, y)] = FIRE; // Fire burns plants
                             }
                         }
                     }
                 }
             }
             
-            // Add new fire
-            for (const pos of newFirePositions) {
+            // Add new fire (limit how many we add per frame)
+            const maxToAdd = Math.min(newFirePositions.length, 5);
+            for (let i = 0; i < maxToAdd; i++) {
+                const pos = newFirePositions[i];
                 if (isInBounds(pos.x, pos.y) && grid[getIndex(pos.x, pos.y)] === EMPTY) {
                     grid[getIndex(pos.x, pos.y)] = FIRE;
                 }
@@ -1837,33 +1854,46 @@
             }
         }
 
+        // Optimize plant growth with chunked processing and less frequent updates
         function updatePlants() {
+            // Only update plants every few frames to improve performance
+            updatePlants.frameCount = (updatePlants.frameCount || 0) + 1;
+            if (updatePlants.frameCount % 5 !== 0) return; // Update only every 5 frames
+            
+            const chunk = (updatePlants.frameCount / 5) % CHUNK_SIZE;
+            
             // Store growth positions to avoid modifying grid during iteration
             const growthPositions = [];
+            const maxGrowth = 10; // Limit new growth per frame
             
             // Identify growth spots
             for (let y = 0; y < height; y++) {
+                // Process only rows in the current chunk
+                if (y % CHUNK_SIZE !== chunk) continue;
+                
+                // Skip empty rows for better performance
+                let hasPlants = false;
+                for (let x = 0; x < width; x++) {
+                    if (grid[getIndex(x, y)] === PLANT) {
+                        hasPlants = true;
+                        break;
+                    }
+                }
+                if (!hasPlants) continue;
+                
                 for (let x = 0; x < width; x++) {
                     const index = getIndex(x, y);
                     
                     if (grid[index] === PLANT) {
-                        // Plants grow upward
-                        if (y > 0 && Math.random() < 0.01 && grid[getIndex(x, y - 1)] === EMPTY) {
+                        // Plants grow upward (less frequently)
+                        if (y > 0 && Math.random() < 0.005 && grid[getIndex(x, y - 1)] === EMPTY && growthPositions.length < maxGrowth) {
                             growthPositions.push({x: x, y: y - 1});
-                        }
-                        
-                        // Plants can grow sideways sometimes
-                        if (Math.random() < 0.003) {
-                            const dir = Math.random() < 0.5 ? -1 : 1;
-                            if (isInBounds(x + dir, y) && grid[getIndex(x + dir, y)] === EMPTY) {
-                                growthPositions.push({x: x + dir, y: y});
-                            }
                         }
                     }
                 }
             }
             
-            // Apply growth
+            // Apply growth (limited for performance)
             for (const pos of growthPositions) {
                 if (isInBounds(pos.x, pos.y) && grid[getIndex(pos.x, pos.y)] === EMPTY) {
                     grid[getIndex(pos.x, pos.y)] = PLANT;
@@ -1883,6 +1913,7 @@
             }, 10000); // 10 seconds
         }
 
+        // Optimize tornado effect
         function updateTornado() {
             if (!tornadoActive) return;
             
@@ -1894,34 +1925,41 @@
             tornadoX = Math.max(tornadoRadius, Math.min(width - tornadoRadius, tornadoX));
             tornadoY = Math.max(tornadoRadius, Math.min(height - tornadoRadius, tornadoY));
             
-            // Apply tornado force to particles in radius
-            for (let x = Math.floor(tornadoX - tornadoRadius); x < Math.floor(tornadoX + tornadoRadius); x++) {
-                for (let y = Math.floor(tornadoY - tornadoRadius); y < Math.floor(tornadoY + tornadoRadius); y++) {
+            // Process only a portion of the tornado area per frame for better performance
+            updateTornado.frameCount = (updateTornado.frameCount || 0) + 1;
+            const segment = updateTornado.frameCount % 4; // Split into 4 segments
+            
+            // Calculate segment angles
+            const startAngle = segment * Math.PI / 2;
+            const endAngle = (segment + 1) * Math.PI / 2;
+            
+            // Process particles in the tornado radius (only in current segment)
+            for (let angle = startAngle; angle < endAngle; angle += 0.1) {
+                for (let r = 0; r < tornadoRadius; r += 2) { // Skip pixels for performance
+                    const x = Math.floor(tornadoX + r * Math.cos(angle));
+                    const y = Math.floor(tornadoY + r * Math.sin(angle));
+                    
                     if (!isInBounds(x, y)) continue;
                     
+                    const index = getIndex(x, y);
+                    if (grid[index] === EMPTY) continue;
+                    
+                    // Calculate force direction (circular)
                     const dx = x - tornadoX;
                     const dy = y - tornadoY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance < tornadoRadius) {
-                        const index = getIndex(x, y);
-                        
-                        // Skip empty cells
-                        if (grid[index] === EMPTY) continue;
-                        
-                        // Calculate force direction (circular)
-                        const angle = Math.atan2(dy, dx) + Math.PI / 2;
+                        const forceAngle = Math.atan2(dy, dx) + Math.PI / 2;
                         const force = 1 - (distance / tornadoRadius);
                         
-                        const forceX = Math.cos(angle) * force * tornadoForce;
-                        const forceY = Math.sin(angle) * force * tornadoForce;
+                        const forceX = Math.cos(forceAngle) * force * tornadoForce;
+                        const forceY = Math.sin(forceAngle) * force * tornadoForce;
                         
-                        // Move the particle
                         const newX = Math.floor(x + forceX);
                         const newY = Math.floor(y + forceY);
                         
                         if (isInBounds(newX, newY) && grid[getIndex(newX, newY)] === EMPTY) {
-                            // Move particle
                             grid[getIndex(newX, newY)] = grid[index];
                             if (grid[index] === SAND) {
                                 colors[getIndex(newX, newY)] = colors[index];
