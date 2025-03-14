@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Sand Art</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #222;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #header {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-bottom: 1px solid #444;
+            z-index: 10;
+        }
+
+        #sandCanvas {
+            flex-grow: 1;
+            cursor: crosshair;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button {
+            background-color: #252525;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::after {
+            left: 100%;
+        }
+
+        button.active {
+            background-color: #007bff;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Tool-specific button styles */
+        #btnPour {
+            background-color: #ff6600;
+            border-bottom: 4px solid #cc5200;
+        }
+        #btnPour.active {
+            background-color: #ff9933;
+            border-bottom-color: #ff6600;
+        }
+
+        #btnEraser {
+            background-color: #cc3366;
+            border-bottom: 4px solid #992650;
+        }
+        #btnEraser.active {
+            background-color: #e65c8a;
+            border-bottom-color: #cc3366;
+        }
+
+        #btnObstacle {
+            background-color: #339966;
+            border-bottom: 4px solid #267747;
+        }
+        #btnObstacle.active {
+            background-color: #4dcc8c;
+            border-bottom-color: #339966;
+        }
+
+        #btnSettings {
+            background-color: #666699;
+            border-bottom: 4px solid #4d4d73;
+        }
+        #btnSettings:hover {
+            background-color: #8080b3;
+        }
+
+        #btnClear {
+            background-color: #993333;
+            border-bottom: 4px solid #732626;
+        }
+        #btnClear:hover {
+            background-color: #bf4040;
+        }
+
+        #btnSave {
+            background-color: #3399cc;
+            border-bottom: 4px solid #267399;
+        }
+        #btnSave:hover {
+            background-color: #4db8e6;
+        }
+
+        /* Enhanced control groups */
+        .control-group {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced color picker */
+        input[type="color"] {
+            border: 3px solid white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            transition: transform 0.2s;
+        }
+
+        input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* Enhanced color presets */
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin-left: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 20px;
+        }
+
+        .color-preset {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-preset:hover {
+            transform: scale(1.2);
+            border-color: white;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .color-preset.selected {
+            transform: scale(1.3);
+            border-color: white;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* Enhanced slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #444;
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #0099ff;
+        }
+
+        /* Header enhancement */
+        #header {
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(20, 20, 40, 0.8), rgba(0, 0, 0, 0.8));
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            padding: 15px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .physics-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .physics-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .physics-control label {
+            flex: 1;
+        }
+
+        .physics-control input {
+            flex: 2;
+        }
+
+        .physics-control span {
+            flex: 0 0 40px;
+            text-align: right;
+        }
+
+        .obstacle-controls {
+            margin-top: 20px;
+        }
+
+        #tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+
+        /* Player character styles */
+        #player {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #ff9900;
+            border-radius: 50%;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 153, 0, 0.8);
+            pointer-events: none;
+            transition: transform 0.1s, filter 0.3s;
+            z-index: 5;
+            display: none;
+        }
+
+        .player-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-button {
+            width: 40px;
+            height: 40px;
+            background-color: #444;
+            border: 2px solid #666;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 0 #333;
+        }
+
+        .control-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #333;
+        }
+
+        /* Add a new tool button */
+        #btnPlayer {
+            background-color: #ff9900;
+            border-bottom: 4px solid #cc7700;
+        }
+        #btnPlayer.active {
+            background-color: #ffbb33;
+            border-bottom-color: #ff9900;
+        }
+
+        #btnWater {
+            background-color: #3498db;
+            border-bottom: 4px solid #2980b9;
+        }
+        #btnWater.active {
+            background-color: #5dade2;
+            border-bottom-color: #3498db;
+        }
+
+        #btnFire {
+            background-color: #e74c3c;
+            border-bottom: 4px solid #c0392b;
+        }
+        #btnFire.active {
+            background-color: #ec7063;
+            border-bottom-color: #e74c3c;
+        }
+
+        #btnPlant {
+            background-color: #2ecc71;
+            border-bottom: 4px solid #27ae60;
+        }
+        #btnPlant.active {
+            background-color: #58d68d;
+            border-bottom-color: #2ecc71;
+        }
+
+        #btnTornado {
+            background-color: #9b59b6;
+            border-bottom: 4px solid #8e44ad;
+        }
+        #btnTornado.active {
+            background-color: #af7ac5;
+            border-bottom-color: #9b59b6;
+        }
+
+        #gameUI {
+            position: fixed;
+            top: 70px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            display: none;
+        }
+
+        #coinDisplay {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        #coinIcon {
+            font-size: 20px;
+            margin-right: 5px;
+            color: gold;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+        }
+
+        #shopButton {
+            background-color: #ffcc00;
+            color: #333;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        #shopButton:hover {
+            background-color: #ffd700;
+            transform: scale(1.05);
+        }
+
+        #shopPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(30, 30, 50, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffcc00;
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .close-shop {
+            background: none;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .shop-item {
+            display: flex;
+            align-items: center;
+            background-color: rgba(60, 60, 80, 0.8);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .shop-item:hover {
+            transform: scale(1.03);
+            background-color: rgba(70, 70, 100, 0.8);
+        }
+
+        .shop-item-icon {
+            font-size: 30px;
+            margin-right: 15px;
+        }
+
+        .shop-item-info {
+            flex-grow: 1;
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-description {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .shop-item-price {
+            background-color: #ffcc00;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .game-object {
+            position: absolute;
+            z-index: 4;
+            font-size: 24px;
+            user-select: none;
+            pointer-events: none;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            animation: float 2s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(3deg); }
+        }
+
+        .coin-popup {
+            position: absolute;
+            color: gold;
+            font-weight: bold;
+            pointer-events: none;
+            animation: coinFloat 1s forwards;
+            z-index: 101;
+            text-shadow: 0 0 3px black;
+        }
+
+        @keyframes coinFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-30px); opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        #player.bounce {
+            animation: playerBounce 0.5s;
+        }
+
+        @keyframes playerBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        #player.happy {
+            filter: brightness(1.5);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #666;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        #eventNotification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 200;
+            transition: transform 0.3s, opacity 0.3s;
+            transform: translateY(150%);
+            opacity: 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            max-width: 350px;
+            font-weight: bold;
+        }
+
+        #eventNotification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        #eventNotification .event-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        #eventNotification .event-title {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #ffcc00;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-5px, -5px); }
+            20%, 40%, 60%, 80% { transform: translate(5px, 5px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div class="controls">
+            <div class="control-group">
+                <button id="btnPour" class="active" title="Pour sand">Pour</button>
+                <button id="btnEraser" title="Erase sand">Erase</button>
+                <button id="btnObstacle" title="Draw obstacles">Obstacles</button>
+                <button id="btnPlayer" title="Play with character">Player</button>
+            </div>
+            <div class="control-group">
+                <button id="btnWater" title="Pour water">Water</button>
+                <button id="btnFire" title="Create fire">Fire</button>
+                <button id="btnPlant" title="Grow plants">Plants</button>
+                <button id="btnTornado" title="Create tornado">Tornado</button>
+            </div>
+            <div class="control-group">
+                <label for="brushSizeSlider">Size:</label>
+                <input type="range" id="brushSizeSlider" min="1" max="50" value="15">
+                <span id="brushSize">15</span>
+            </div>
+            <div class="control-group">
+                <input type="color" id="colorPicker" value="#ff4500">
+                <div class="color-palette">
+                    <div class="color-preset" style="background-color: #ff4500;" data-color="#ff4500"></div>
+                    <div class="color-preset" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                    <div class="color-preset" style="background-color: #00aaff;" data-color="#00aaff"></div>
+                    <div class="color-preset" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
+                    <div class="color-preset" style="background-color: #00ff00;" data-color="#00ff00"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="btnSettings" title="Physics settings">Settings</button>
+            <button id="btnClear" title="Clear canvas">Clear</button>
+            <button id="btnSave" title="Save as image">Save</button>
+        </div>
+    </div>
+
+    <div id="player"></div>
+    <canvas id="sandCanvas"></canvas>
+    <div id="tooltip"></div>
+
+    <div id="gameUI">
+        <div id="coinDisplay">
+            <span id="coinIcon">💰</span>
+            <span id="coinCount">20</span>
+        </div>
+        <button id="shopButton">Shop</button>
+    </div>
+
+    <div id="shopPanel">
+        <div class="shop-header">
+            <h2>Shop</h2>
+            <button class="close-shop">&times;</button>
+        </div>
+        <div id="shopItems"></div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Physics Settings</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="physics-controls">
+                <div class="physics-control">
+                    <label for="gravitySlider">Gravity:</label>
+                    <input type="range" id="gravitySlider" min="0.1" max="2" step="0.1" value="0.8">
+                    <span id="gravityValue">0.8</span>
+                </div>
+                <div class="physics-control">
+                    <label for="inertiaSlider">Inertia:</label>
+                    <input type="range" id="inertiaSlider" min="0" max="1" step="0.1" value="0.3">
+                    <span id="inertiaValue">0.3</span>
+                </div>
+                <div class="physics-control">
+                    <label for="frictionSlider">Friction:</label>
+                    <input type="range" id="frictionSlider" min="0" max="1" step="0.1" value="0.2">
+                    <span id="frictionValue">0.2</span>
+                </div>
+                <div class="physics-control">
+                    <label for="spreadFactorSlider">Spread Factor:</label>
+                    <input type="range" id="spreadFactorSlider" min="0" max="1" step="0.1" value="0.5">
+                    <span id="spreadFactorValue">0.5</span>
+                </div>
+                <div class="physics-control">
+                    <label for="randomEventsToggle">Random Events:</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="randomEventsToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                    <span>ON</span>
+                </div>
+                <div class="obstacle-controls">
+                    <div class="physics-control">
+                        <label for="obstacleTypeSelect">Obstacle Type:</label>
+                        <select id="obstacleTypeSelect">
+                            <option value="solid">Solid Wall</option>
+                            <option value="funnel">Funnel</option>
+                            <option value="bounce">Bouncy Surface</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="player-controls">
+                    <h3>Player Controls</h3>
+                    <p>Move with arrow keys or use these controls:</p>
+                    <div class="control-buttons">
+                        <div class="control-button" id="btnUp">↑</div>
+                        <div class="control-button" id="btnLeft">←</div>
+                        <div class="control-button" id="btnDown">↓</div>
+                        <div class="control-button" id="btnRight">→</div>
+                    </div>
+                    <div class="physics-control">
+                        <label for="playerSizeSlider">Player Size:</label>
+                        <input type="range" id="playerSizeSlider" min="10" max="50" step="1" value="30">
+                        <span id="playerSizeValue">30</span>
+                    </div>
+                    <div class="physics-control">
+                        <label for="playerSpeedSlider">Player Speed:</label>
+                        <input type="range" id="playerSpeedSlider" min="1" max="10" step="1" value="4">
+                        <span id="playerSpeedValue">4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="eventNotification">
+        <span class="event-icon">⚡</span>
+        <span class="event-title">Event Title</span>
+        <span class="event-description">Event description goes here.</span>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('sandCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        // Declare grid variables first
+        let grid = [];
+        let colors = [];
+        
+        // Declare special particle arrays
+        let waterParticles = [];
+        let fireParticles = [];
+        let plantParticles = [];
+        let tornadoActive = false;
+        let tornadoX = 0;
+        let tornadoY = 0;
+        let tornadoRadius = 50;
+        let tornadoForce = 5;
+
+        // Random events system variables - MOVE THIS UP!
+        let randomEventsEnabled = true;
+        let lastEventTime = 0;
+        const EVENT_COOLDOWN = 30000; // Minimum 30 seconds between events
+
+        // Add these variables near your other player variables
+        let playerCoins = 20;
+        let coinPrinters = [];
+        let gameObjects = [];
+        let shopOpen = false;
+        let shopItems = [
+            { name: "Coin Printer", cost: 10, income: 1, type: "printer", icon: "💰" },
+            { name: "Money Tree", cost: 25, income: 3, type: "tree", icon: "🌴" },
+            { name: "Piggy Bank", cost: 5, income: 0.5, type: "bank", icon: "🐷" },
+            { name: "Gold Mine", cost: 100, income: 8, type: "mine", icon: "⛏️" },
+            { name: "Fountain", cost: 40, income: 4, type: "fountain", icon: "⛲" },
+            { name: "Crystal", cost: 60, income: 5, type: "crystal", icon: "💎" }
+        ];
+
+        // Resize to window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - document.getElementById('header').offsetHeight;
+            width = canvas.width;
+            height = canvas.height;
+            
+            // Check if grid is already initialized
+            if (grid.length > 0) {
+                // Redraw everything on resize
+                drawSand();
+            }
+        }
+        
+        // Initialize grid
+        function initializeGrid() {
+            grid = new Array(width * height).fill(EMPTY);
+            colors = new Array(width * height).fill(0);
+        }
+        
+        // First set up the window resize listener
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Then do the initial resize to set dimensions
+        resizeCanvas();
+        
+        // Sand simulation variables
+        const EMPTY = 0;
+        const SAND = 1;
+        const OBSTACLE = 2;
+        const WATER = 3;
+        const FIRE = 4;
+        const PLANT = 5;
+        
+        // Now initialize the grid after we have width and height
+        initializeGrid();
+        
+        // Physics settings
+        let physicsSettings = {
+            gravity: 0.8,
+            inertia: 0.3,
+            friction: 0.2,
+            spreadFactor: 0.5,
+            obstacleType: 'solid',
+            randomEvents: true
+        };
+        
+        // Tool settings
+        let currentTool = 'pour';
+        let brushSize = 15;
+        let currentColor = '#ff4500';
+        
+        // Mouse variables
+        let isDrawing = false;
+        let lastX, lastY;
+        
+        // Functions to convert between grid coordinates and array index
+        function getIndex(x, y) {
+            return y * width + x;
+        }
+        
+        function isInBounds(x, y) {
+            return x >= 0 && x < width && y >= 0 && y < height;
+        }
+        
+        // Function to create sand particles
+        function addSand(x, y, color) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(x, y);
+            if (grid[index] === EMPTY) {
+                grid[index] = SAND;
+                colors[index] = color;
+            }
+        }
+        
+        // Function to remove sand particles
+        function removeSand(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(x, y);
+            if (grid[index] === SAND) {
+                grid[index] = EMPTY;
+            }
+        }
+        
+        // Function to add obstacles
+        function addObstacle(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(x, y);
+            if (grid[index] === EMPTY || grid[index] === SAND) {
+                grid[index] = OBSTACLE;
+            }
+        }
+        
+        // Function to remove obstacles
+        function removeObstacle(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(x, y);
+            if (grid[index] === OBSTACLE) {
+                grid[index] = EMPTY;
+            }
+        }
+        
+        // Draw a line between two points (for continuous drawing)
+        function drawLineOfSand(x1, y1, x2, y2) {
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            const sx = x1 < x2 ? 1 : -1;
+            const sy = y1 < y2 ? 1 : -1;
+            let err = dx - dy;
+            
+            while (true) {
+                // Apply brush size (circle around point)
+                for (let i = -brushSize; i <= brushSize; i++) {
+                    for (let j = -brushSize; j <= brushSize; j++) {
+                        // Check if within brush circle
+                        if (i*i + j*j <= brushSize*brushSize) {
+                            const x = Math.floor(x1 + i);
+                            const y = Math.floor(y1 + j); // FIX: was x1 + j (typo)
+                            
+                            if (currentTool === 'pour') {
+                                addSand(x, y, currentColor);
+                            } else if (currentTool === 'eraser') {
+                                removeSand(x, y);
+                                removeObstacle(x, y);
+                            } else if (currentTool === 'obstacle') {
+                                addObstacle(x, y);
+                            } else if (currentTool === 'water') {
+                                addWater(x, y);
+                            } else if (currentTool === 'fire') {
+                                addFire(x, y);
+                            } else if (currentTool === 'plant') {
+                                addPlant(x, y);
+                            } else if (currentTool === 'tornado') {
+                                createTornado(x, y);
+                            }
+                        }
+                    }
+                }
+                
+                if (x1 === x2 && y1 === y2) break;
+                
+                const e2 = 2 * err;
+                if (e2 > -dy) {
+                    err -= dy;
+                    x1 += sx;
+                }
+                if (e2 < dx) {
+                    err += dx;
+                    y1 += sy;
+                }
+            }
+        }
+        
+        // Update sand physics
+        function updateSand() {
+            // Update from bottom to top for gravity simulation
+            for (let y = height - 2; y >= 0; y--) {
+                for (let x = 0; x < width; x++) {
+                    const currentIndex = getIndex(x, y);
+                    
+                    // If this cell has sand
+                    if (grid[currentIndex] === SAND) {
+                        const color = colors[currentIndex];
+                        
+                        // Apply gravity - higher values make sand fall faster
+                        if (Math.random() < physicsSettings.gravity) {
+                            // Directly below
+                            const downIndex = getIndex(x, y + 1);
+                            if (isInBounds(x, y + 1) && grid[downIndex] === EMPTY) {
+                                grid[currentIndex] = EMPTY;
+                                grid[downIndex] = SAND;
+                                colors[downIndex] = color;
+                                continue;
+                            }
+                            
+                            // Special obstacle handling
+                            if (isInBounds(x, y + 1) && grid[downIndex] === OBSTACLE) {
+                                if (physicsSettings.obstacleType === 'bounce') {
+                                    // Bounce physics - more pronounced with higher values
+                                    const bounceHeight = Math.max(1, Math.floor(3 * physicsSettings.gravity));
+                                    const bounceX = x + (Math.random() > 0.5 ? 1 : -1);
+                                    const bounceY = Math.max(0, y - bounceHeight);
+                                    
+                                    if (isInBounds(bounceX, bounceY) && grid[getIndex(bounceX, bounceY)] === EMPTY) {
+                                        grid[currentIndex] = EMPTY;
+                                        grid[getIndex(bounceX, bounceY)] = SAND;
+                                        colors[getIndex(bounceX, bounceY)] = color;
+                                        continue;
+                                    }
+                                }
+                                
+                                if (physicsSettings.obstacleType === 'funnel') {
+                                    // Funnel physics - stronger pull with higher values
+                                    const centerDiff = x - width / 2;
+                                    const funnelForce = Math.min(3, Math.max(1, Math.ceil(3 * physicsSettings.spreadFactor)));
+                                    const funnelX = centerDiff > 0 ? x - funnelForce : x + funnelForce;
+                                    
+                                    if (isInBounds(funnelX, y) && grid[getIndex(funnelX, y)] === EMPTY) {
+                                        grid[currentIndex] = EMPTY;
+                                        grid[getIndex(funnelX, y)] = SAND;
+                                        colors[getIndex(funnelX, y)] = color;
+                                        continue;
+                                    }
+                                }
+                            }
+                            
+                            // The probability of going left or right depends on the spread factor
+                            const goesLeft = Math.random() < 0.5;
+                            
+                            // Down and left/right - spread factor directly affects this behavior
+                            const spreadDirection = goesLeft ? -1 : 1;
+                            const spreadIndex = getIndex(x + spreadDirection, y + 1);
+                            
+                            if (Math.random() < physicsSettings.spreadFactor && 
+                                isInBounds(x + spreadDirection, y + 1) && 
+                                grid[spreadIndex] === EMPTY) {
+                                grid[currentIndex] = EMPTY;
+                                grid[spreadIndex] = SAND;
+                                colors[spreadIndex] = color;
+                                continue;
+                            }
+                        }
+                        
+                        // Sideways movement based on inertia
+                        if (Math.random() < physicsSettings.inertia) {
+                            // Try both directions with randomized preference
+                            const directions = Math.random() < 0.5 ? [-1, 1] : [1, -1];
+                            
+                            for (const dir of directions) {
+                                const sideIndex = getIndex(x + dir, y);
+                                if (isInBounds(x + dir, y) && grid[sideIndex] === EMPTY) {
+                                    // Apply friction - higher friction means less movement
+                                    if (Math.random() > physicsSettings.friction) {
+                                        grid[currentIndex] = EMPTY;
+                                        grid[sideIndex] = SAND;
+                                        colors[sideIndex] = color;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Draw the sand
+        function drawSand() {
+            const imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < grid.length; i++) {
+                const dataIndex = i * 4;
+                
+                if (grid[i] === SAND) {
+                    const color = hexToRgb(colors[i]);
+                    data[dataIndex] = color.r;
+                    data[dataIndex + 1] = color.g;
+                    data[dataIndex + 2] = color.b;
+                    data[dataIndex + 3] = 255; // Fully opaque
+                } else if (grid[i] === OBSTACLE) {
+                    // Draw obstacles as dark gray
+                    data[dataIndex] = 50;
+                    data[dataIndex + 1] = 50;
+                    data[dataIndex + 2] = 50;
+                    data[dataIndex + 3] = 255;
+                } else if (grid[i] === WATER) {
+                    // Draw water with slight transparency
+                    data[dataIndex] = 30;
+                    data[dataIndex + 1] = 144;
+                    data[dataIndex + 2] = 255;
+                    data[dataIndex + 3] = 200;
+                } else if (grid[i] === FIRE) {
+                    // Find the fire particle to get its color
+                    let fireColor = { r: 255, g: 100, b: 0 };
+                    
+                    // Use default fire color if we can't find the specific particle
+                    // (In a full implementation you'd track this better)
+                    
+                    data[dataIndex] = fireColor.r;
+                    data[dataIndex + 1] = fireColor.g;
+                    data[dataIndex + 2] = fireColor.b;
+                    data[dataIndex + 3] = 255;
+                } else if (grid[i] === PLANT) {
+                    // Green for plants
+                    data[dataIndex] = 40;
+                    data[dataIndex + 1] = 180;
+                    data[dataIndex + 2] = 40;
+                    data[dataIndex + 3] = 255;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw tornado effect if active
+            if (tornadoActive) {
+                ctx.beginPath();
+                ctx.arc(tornadoX, tornadoY, tornadoRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw swirl effect
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Date.now() / 200 + i * Math.PI / 4) % (Math.PI * 2);
+                    const x1 = tornadoX + Math.cos(angle) * tornadoRadius * 0.5;
+                    const y1 = tornadoY + Math.sin(angle) * tornadoRadius * 0.5;
+                    const x2 = tornadoX + Math.cos(angle) * tornadoRadius;
+                    const y2 = tornadoY + Math.sin(angle) * tornadoRadius;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Draw obstacles separately for better visualization
+        function drawObstacles() {
+            // No need for a separate function as obstacles are drawn in the drawSand function
+        }
+        
+        // Convert hex color to RGB
+        function hexToRgb(hex) {
+            // Remove the # if present
+            hex = hex.replace(/^#/, '');
+            
+            // Parse the hex value
+            const bigint = parseInt(hex, 16);
+            
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255
+            };
+        }
+        
+        // Player variables
+        let playerActive = false;
+        let playerX = Math.floor(width / 2);
+        let playerY = Math.floor(height / 3);
+        let playerSize = 30;
+        let playerSpeed = 4;
+        let playerVelocityX = 0;
+        let playerVelocityY = 0;
+        let playerGravity = 0.3;
+        let isJumping = false;
+        let keysPressed = {};
+
+        // Player physics
+        function updatePlayer() {
+            if (!playerActive) {
+                document.getElementById('gameUI').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('gameUI').style.display = 'block';
+            
+            // Apply gravity
+            playerVelocityY += playerGravity;
+            
+            // Apply horizontal movement from keys
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) {
+                playerVelocityX = -playerSpeed;
+            } else if (keysPressed['ArrowRight'] || keysPressed['d']) {
+                playerVelocityX = playerSpeed;
+            } else {
+                // Apply friction
+                playerVelocityX *= 0.8;
+            }
+            
+            // Jump
+            if ((keysPressed['ArrowUp'] || keysPressed['w'] || keysPressed[' ']) && !isJumping) {
+                playerVelocityY = -10; // Stronger jump
+                isJumping = true;
+                
+                // Add fun bounce effect
+                const playerEl = document.getElementById('player');
+                playerEl.classList.add('bounce');
+                setTimeout(() => playerEl.classList.remove('bounce'), 500);
+                
+                // Make a "boing" sound effect
+                playSound('jump');
+            }
+            
+            // Limit speed
+            playerVelocityX = Math.max(-playerSpeed * 1.5, Math.min(playerSpeed * 1.5, playerVelocityX));
+            playerVelocityY = Math.max(-15, Math.min(15, playerVelocityY));
+            
+            // Update position
+            playerX += playerVelocityX;
+            playerY += playerVelocityY;
+            
+            // Boundary checks with bouncy walls
+            if (playerX - playerSize/2 < 0) {
+                playerX = playerSize/2;
+                playerVelocityX = Math.abs(playerVelocityX) * 0.8; // Bounce off wall
+                playSound('bounce');
+            }
+            if (playerX + playerSize/2 > width) {
+                playerX = width - playerSize/2;
+                playerVelocityX = -Math.abs(playerVelocityX) * 0.8; // Bounce off wall
+                playSound('bounce');
+            }
+            if (playerY - playerSize/2 < 0) {
+                playerY = playerSize/2;
+                playerVelocityY = Math.abs(playerVelocityY) * 0.5;
+                playSound('bounce');
+            }
+            
+            // IMPORTANT: Add floor to bottom of world
+            if (playerY + playerSize/2 > height) {
+                playerY = height - playerSize/2;
+                playerVelocityY = 0;
+                isJumping = false;
+            }
+            
+            // Check collision with sand and obstacles
+            const radius = Math.floor(playerSize / 2);
+            let onGround = false;
+            
+            // Check below player for ground
+            for (let i = -radius + 5; i <= radius - 5; i++) {
+                const checkX = Math.floor(playerX + i);
+                const checkY = Math.floor(playerY + radius);
+                
+                if (isInBounds(checkX, checkY)) {
+                    const index = getIndex(checkX, checkY);
+                    
+                    // Check for any solid material under player
+                    if (grid[index] === SAND || grid[index] === OBSTACLE || grid[index] === PLANT) {
+                        onGround = true;
+                        
+                        // More dramatic interactions with different materials
+                        if (grid[index] === SAND) {
+                            // Displace sand with more dramatic effect
+                            if (Math.abs(playerVelocityY) > 3 || Math.abs(playerVelocityX) > 3) {
+                                // Create a sand explosion effect
+                                for (let sx = -3; sx <= 3; sx++) {
+                                    for (let sy = -1; sy <= 0; sy++) {
+                                        const sandX = Math.floor(checkX + sx);
+                                        const sandY = Math.floor(checkY + sy);
+                                        
+                                        if (isInBounds(sandX, sandY) && grid[getIndex(sandX, sandY)] === SAND) {
+                                            const dir = sx < 0 ? -1 : 1;
+                                            const newX = sandX + dir * Math.floor(Math.random() * 3);
+                                            const newY = sandY - Math.floor(Math.random() * 3);
+                                            
+                                            if (isInBounds(newX, newY) && grid[getIndex(newX, newY)] === EMPTY) {
+                                                grid[getIndex(newX, newY)] = SAND;
+                                                colors[getIndex(newX, newY)] = colors[getIndex(sandX, sandY)];
+                                                grid[getIndex(sandX, sandY)] = EMPTY;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if (Math.abs(playerVelocityY) > 8) {
+                                    playSound('bigimpact');
+                                } else if (Math.abs(playerVelocityY) > 3) {
+                                    playSound('impact');
+                                }
+                            }
+                        } else if (grid[index] === OBSTACLE) {
+                            // Bouncy obstacles
+                            if (Math.abs(playerVelocityY) > 3) {
+                                playerVelocityY = -playerVelocityY * 0.5;
+                                playSound('bounce');
+                            }
+                        } else if (grid[index] === PLANT) {
+                            // Springy plants
+                            playerVelocityY = -Math.abs(playerVelocityY) * 0.8 - 3;
+                            isJumping = true;
+                            playSound('spring');
+                        }
+                        
+                        break;
+                    }
+                    
+                    // Check for fun interaction with other materials
+                    if (grid[index] === WATER) {
+                        // Splash in water
+                        if (Math.abs(playerVelocityY) > 2) {
+                            for (let wx = -2; wx <= 2; wx++) {
+                                const waterX = Math.floor(checkX + wx);
+                                const waterY = Math.floor(checkY);
+                                
+                                if (isInBounds(waterX, waterY) && grid[getIndex(waterX, waterY)] === WATER) {
+                                    const dir = (Math.random() > 0.5) ? 1 : -1;
+                                    const newX = waterX + dir;
+                                    const newY = waterY - 2;
+                                    
+                                    if (isInBounds(newX, newY) && grid[getIndex(newX, newY)] === EMPTY) {
+                                        grid[getIndex(newX, newY)] = WATER;
+                                        grid[getIndex(waterX, waterY)] = EMPTY;
+                                    }
+                                }
+                            }
+                            
+                            // Slow down in water
+                            playerVelocityX *= 0.8;
+                            playerVelocityY *= 0.8;
+                            playSound('splash');
+                        }
+                    } else if (grid[index] === FIRE) {
+                        // Jump away from fire!
+                        playerVelocityY = -10;
+                        isJumping = true;
+                        
+                        // Make player look "hurt"
+                        const playerEl = document.getElementById('player');
+                        playerEl.style.backgroundColor = '#ff3300';
+                        setTimeout(() => playerEl.style.backgroundColor = '#ff9900', 500);
+                        playSound('burn');
+                    }
+                }
+            }
+            
+            // Apply ground physics
+            if (onGround && playerVelocityY > 0) {
+                playerY = Math.floor(playerY);
+                playerVelocityY = 0;
+                isJumping = false;
+            }
+            
+            // Check for collisions with game objects (coin printers, etc.)
+            for (let i = 0; i < gameObjects.length; i++) {
+                const obj = gameObjects[i];
+                const dx = obj.x - playerX;
+                const dy = obj.y - playerY;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < playerSize/2 + 15) { // Simple collision detection
+                    // Bounce off the object slightly
+                    const angle = Math.atan2(dy, dx);
+                    playerVelocityX -= Math.cos(angle) * 1;
+                    playerVelocityY -= Math.sin(angle) * 1;
+                    
+                    // Slight push to the object
+                    obj.x += Math.cos(angle) * 2;
+                    obj.y += Math.sin(angle) * 2;
+                    
+                    // Update the visual
+                    obj.element.style.left = `${obj.x}px`;
+                    obj.element.style.top = `${obj.y}px`;
+                }
+            }
+            
+            // Create sand trail with player color
+            if (currentTool === 'player' && Math.random() < 0.3) {
+                const trailX = Math.floor(playerX + (Math.random() * playerSize - playerSize/2));
+                const trailY = Math.floor(playerY + radius * 0.8);
+                if (isInBounds(trailX, trailY) && grid[getIndex(trailX, trailY)] === EMPTY) {
+                    addSand(trailX, trailY, currentColor);
+                }
+            }
+            
+            // Update player element position
+            const playerElement = document.getElementById('player');
+            playerElement.style.left = `${playerX - playerSize/2}px`;
+            playerElement.style.top = `${playerY - playerSize/2 + document.getElementById('header').offsetHeight}px`;
+            playerElement.style.width = `${playerSize}px`;
+            playerElement.style.height = `${playerSize}px`;
+            playerElement.style.display = playerActive ? 'block' : 'none';
+            playerElement.style.transform = `rotate(${playerVelocityX * 3}deg)`;
+        }
+
+        // Animation loop
+        function animate() {
+            try {
+                updateSand();
+                updateWater();
+                updateFire();
+                updatePlants();
+                
+                if (tornadoActive) {
+                    updateTornado();
+                }
+                
+                updatePlayer();
+                updateGameObjects();
+                
+                if (randomEventsEnabled) {
+                    checkForRandomEvents();
+                }
+                
+                drawSand();
+                
+            } catch (e) {
+                console.error('Error in animation loop:', e);
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Start animation
+        animate();
+        
+        // Event listeners for canvas
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            lastX = e.clientX;
+            lastY = e.clientY - document.getElementById('header').offsetHeight;
+            drawLineOfSand(lastX, lastY, lastX, lastY);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            updateTooltip(e);
+            
+            if (!isDrawing) return;
+            
+            const x = e.clientX;
+            const y = e.clientY - document.getElementById('header').offsetHeight;
+            
+            drawLineOfSand(lastX, lastY, x, y);
+            
+            lastX = x;
+            lastY = y;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+            hideTooltip();
+        });
+        
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const touch = e.touches[0];
+            lastX = touch.clientX;
+            lastY = touch.clientY - document.getElementById('header').offsetHeight;
+            drawLineOfSand(lastX, lastY, lastX, lastY);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            
+            const touch = e.touches[0];
+            const x = touch.clientX;
+            const y = touch.clientY - document.getElementById('header').offsetHeight;
+            
+            drawLineOfSand(lastX, lastY, x, y);
+            
+            lastX = x;
+            lastY = y;
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+        
+        // Tool button handlers
+        document.getElementById('btnPour').addEventListener('click', () => {
+            setActiveTool('pour');
+        });
+        
+        document.getElementById('btnEraser').addEventListener('click', () => {
+            setActiveTool('eraser');
+        });
+        
+        document.getElementById('btnObstacle').addEventListener('click', () => {
+            setActiveTool('obstacle');
+        });
+        
+        document.getElementById('btnPlayer').addEventListener('click', () => {
+            setActiveTool('player');
+            playerActive = true;
+        });
+
+        document.getElementById('btnWater').addEventListener('click', () => {
+            setActiveTool('water');
+        });
+
+        document.getElementById('btnFire').addEventListener('click', () => {
+            setActiveTool('fire');
+        });
+
+        document.getElementById('btnPlant').addEventListener('click', () => {
+            setActiveTool('plant');
+        });
+
+        document.getElementById('btnTornado').addEventListener('click', () => {
+            setActiveTool('tornado');
+        });
+
+        function setActiveTool(tool) {
+            currentTool = tool;
+            
+            // Update UI
+            document.getElementById('btnPour').classList.toggle('active', tool === 'pour');
+            document.getElementById('btnEraser').classList.toggle('active', tool === 'eraser');
+            document.getElementById('btnObstacle').classList.toggle('active', tool === 'obstacle');
+            document.getElementById('btnPlayer').classList.toggle('active', tool === 'player');
+            document.getElementById('btnWater').classList.toggle('active', tool === 'water');
+            document.getElementById('btnFire').classList.toggle('active', tool === 'fire');
+            document.getElementById('btnPlant').classList.toggle('active', tool === 'plant');
+            document.getElementById('btnTornado').classList.toggle('active', tool === 'tornado');
+            
+            // Toggle player mode
+            playerActive = tool === 'player';
+        }
+        
+        // Brush size handler
+        const brushSizeSlider = document.getElementById('brushSizeSlider');
+        const brushSizeDisplay = document.getElementById('brushSize');
+        
+        brushSizeSlider.addEventListener('input', () => {
+            brushSize = parseInt(brushSizeSlider.value);
+            brushSizeDisplay.textContent = brushSize;
+        });
+        
+        // Color picker handler
+        const colorPicker = document.getElementById('colorPicker');
+        
+        colorPicker.addEventListener('input', () => {
+            currentColor = colorPicker.value;
+            updateSelectedColorUI();
+        });
+        
+        // Color presets
+        document.querySelectorAll('.color-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                currentColor = preset.dataset.color;
+                colorPicker.value = currentColor;
+                updateSelectedColorUI();
+            });
+        });
+        
+        function updateSelectedColorUI() {
+            document.querySelectorAll('.color-preset').forEach(preset => {
+                preset.classList.toggle('selected', preset.dataset.color === currentColor);
+            });
+        }
+        
+        // Clear canvas
+        document.getElementById('btnClear').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                initializeGrid();
+            }
+        });
+        
+        // Save image
+        document.getElementById('btnSave').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'sand-art.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+        
+        // Settings modal
+        const settingsModal = document.getElementById('settingsModal');
+        
+        document.getElementById('btnSettings').addEventListener('click', () => {
+            settingsModal.classList.add('active');
+        });
+        
+        document.querySelector('.modal-close').addEventListener('click', () => {
+            settingsModal.classList.remove('active');
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('active');
+            }
+        });
+        
+        // Physics settings handlers
+        document.getElementById('gravitySlider').addEventListener('input', (e) => {
+            physicsSettings.gravity = parseFloat(e.target.value);
+            document.getElementById('gravityValue').textContent = e.target.value;
+        });
+        
+        document.getElementById('inertiaSlider').addEventListener('input', (e) => {
+            physicsSettings.inertia = parseFloat(e.target.value);
+            document.getElementById('inertiaValue').textContent = e.target.value;
+        });
+        
+        document.getElementById('frictionSlider').addEventListener('input', (e) => {
+            physicsSettings.friction = parseFloat(e.target.value);
+            document.getElementById('frictionValue').textContent = e.target.value;
+        });
+
+        document.getElementById('spreadFactorSlider').addEventListener('input', (e) => {
+            physicsSettings.spreadFactor = parseFloat(e.target.value);
+            document.getElementById('spreadFactorValue').textContent = e.target.value;
+        });
+
+        document.getElementById('obstacleTypeSelect').addEventListener('change', (e) => {
+            physicsSettings.obstacleType = e.target.value;
+        });
+
+        document.getElementById('playerSizeSlider').addEventListener('input', (e) => {
+            playerSize = parseInt(e.target.value);
+            document.getElementById('playerSizeValue').textContent = e.target.value;
+        });
+
+        document.getElementById('playerSpeedSlider').addEventListener('input', (e) => {
+            playerSpeed = parseInt(e.target.value);
+            document.getElementById('playerSpeedValue').textContent = e.target.value;
+        });
+
+        // Handle random events toggle
+        document.getElementById('randomEventsToggle').addEventListener('change', function(e) {
+            physicsSettings.randomEvents = e.target.checked;
+            randomEventsEnabled = e.target.checked;
+            
+            // Update label
+            this.parentElement.nextElementSibling.textContent = randomEventsEnabled ? 'ON' : 'OFF';
+            
+            // Show notification
+            showEventNotification(
+                randomEventsEnabled ? '🔄 Events Enabled' : '⏹️ Events Disabled',
+                randomEventsEnabled ? 'Random events can now occur in your world.' : 'Random events are now turned off.',
+                randomEventsEnabled ? '🎲' : '🚫'
+            );
+        });
+
+        // On-screen player controls
+        document.getElementById('btnUp').addEventListener('mousedown', () => keysPressed['ArrowUp'] = true);
+        document.getElementById('btnUp').addEventListener('mouseup', () => keysPressed['ArrowUp'] = false);
+        document.getElementById('btnUp').addEventListener('touchstart', () => keysPressed['ArrowUp'] = true);
+        document.getElementById('btnUp').addEventListener('touchend', () => keysPressed['ArrowUp'] = false);
+
+        document.getElementById('btnLeft').addEventListener('mousedown', () => keysPressed['ArrowLeft'] = true);
+        document.getElementById('btnLeft').addEventListener('mouseup', () => keysPressed['ArrowLeft'] = false);
+        document.getElementById('btnLeft').addEventListener('touchstart', () => keysPressed['ArrowLeft'] = true);
+        document.getElementById('btnLeft').addEventListener('touchend', () => keysPressed['ArrowLeft'] = false);
+
+        document.getElementById('btnDown').addEventListener('mousedown', () => keysPressed['ArrowDown'] = true);
+        document.getElementById('btnDown').addEventListener('mouseup', () => keysPressed['ArrowDown'] = false);
+        document.getElementById('btnDown').addEventListener('touchstart', () => keysPressed['ArrowDown'] = true);
+        document.getElementById('btnDown').addEventListener('touchend', () => keysPressed['ArrowDown'] = false);
+
+        document.getElementById('btnRight').addEventListener('mousedown', () => keysPressed['ArrowRight'] = true);
+        document.getElementById('btnRight').addEventListener('mouseup', () => keysPressed['ArrowRight'] = false);
+        document.getElementById('btnRight').addEventListener('touchstart', () => keysPressed['ArrowRight'] = true);
+        document.getElementById('btnRight').addEventListener('touchend', () => keysPressed['ArrowRight'] = false);
+
+        // Keyboard input
+        window.addEventListener('keydown', (e) => {
+            keysPressed[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
+        });
+
+        // Function for special elements
+        // Completely rewrite the water system with a simpler approach
+        function addWater(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const xFloor = Math.floor(x);
+            const yFloor = Math.floor(y);
+            const index = getIndex(xFloor, yFloor);
+            
+            if (grid[index] === EMPTY) {
+                grid[index] = WATER;
+            }
+        }
+
+        function updateWater() {
+            // Update from bottom to top for water simulation
+            for (let y = height - 1; y >= 0; y--) {
+                // Go left to right AND right to left on alternating rows for more natural flow
+                const direction = (y % 2 === 0) ? 1 : -1;
+                const startX = (direction === 1) ? 0 : width - 1;
+                const endX = (direction === 1) ? width : -1;
+                
+                for (let x = startX; x !== endX; x += direction) {
+                    const index = getIndex(x, y);
+                    
+                    if (grid[index] === WATER) {
+                        // Try to move down
+                        if (y < height - 1 && grid[getIndex(x, y + 1)] === EMPTY) {
+                            grid[getIndex(x, y + 1)] = WATER;
+                            grid[index] = EMPTY;
+                            continue;
+                        }
+                        
+                        // Try to move down-left or down-right
+                        const moveDirection = Math.random() < 0.5 ? -1 : 1;
+                        if (y < height - 1 && isInBounds(x + moveDirection, y + 1) && 
+                            grid[getIndex(x + moveDirection, y + 1)] === EMPTY) {
+                            grid[getIndex(x + moveDirection, y + 1)] = WATER;
+                            grid[index] = EMPTY;
+                            continue;
+                        }
+                        
+                        // Try to move sideways if can't move down
+                        if (Math.random() < 0.3) {
+                            const spreadDirection = Math.random() < 0.5 ? -1 : 1;
+                            if (isInBounds(x + spreadDirection, y) && grid[getIndex(x + spreadDirection, y)] === EMPTY) {
+                                grid[getIndex(x + spreadDirection, y)] = WATER;
+                                grid[index] = EMPTY;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Simplified fire system
+        function addFire(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(Math.floor(x), Math.floor(y));
+            if (grid[index] === EMPTY) {
+                grid[index] = FIRE;
+            }
+        }
+
+        function updateFire() {
+            // Store positions of new fire to be added after the iteration
+            let newFirePositions = [];
+            
+            // Update from top to bottom for fire (since fire rises)
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = getIndex(x, y);
+                    
+                    if (grid[index] === FIRE) {
+                        // Chance to extinguish (simulate burning out)
+                        if (Math.random() < 0.05) {
+                            grid[index] = EMPTY;
+                            continue;
+                        }
+                        
+                        // Try to move upward
+                        if (y > 0 && Math.random() < 0.7) {
+                            const upIndex = getIndex(x, y - 1);
+                            if (grid[upIndex] === EMPTY) {
+                                grid[upIndex] = FIRE;
+                                grid[index] = EMPTY;
+                                continue;
+                            }
+                        }
+                        
+                        // Spread fire
+                        if (Math.random() < 0.05) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    if (dx === 0 && dy === 0) continue;
+                                    
+                                    const nx = x + dx;
+                                    const ny = y + dy;
+                                    
+                                    if (!isInBounds(nx, ny)) continue;
+                                    if (grid[getIndex(nx, ny)] === EMPTY && Math.random() < 0.2) {
+                                        newFirePositions.push({x: nx, y: ny});
+                                    } else if (grid[getIndex(nx, ny)] === PLANT) {
+                                        grid[getIndex(nx, ny)] = FIRE; // Fire burns plants
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add new fire
+            for (const pos of newFirePositions) {
+                if (isInBounds(pos.x, pos.y) && grid[getIndex(pos.x, pos.y)] === EMPTY) {
+                    grid[getIndex(pos.x, pos.y)] = FIRE;
+                }
+            }
+        }
+
+        // Simplified plant system
+        function addPlant(x, y) {
+            if (!isInBounds(x, y)) return;
+            
+            const index = getIndex(Math.floor(x), Math.floor(y));
+            if (grid[index] === EMPTY) {
+                grid[index] = PLANT;
+            }
+        }
+
+        function updatePlants() {
+            // Store growth positions to avoid modifying grid during iteration
+            const growthPositions = [];
+            
+            // Identify growth spots
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = getIndex(x, y);
+                    
+                    if (grid[index] === PLANT) {
+                        // Plants grow upward
+                        if (y > 0 && Math.random() < 0.01 && grid[getIndex(x, y - 1)] === EMPTY) {
+                            growthPositions.push({x: x, y: y - 1});
+                        }
+                        
+                        // Plants can grow sideways sometimes
+                        if (Math.random() < 0.003) {
+                            const dir = Math.random() < 0.5 ? -1 : 1;
+                            if (isInBounds(x + dir, y) && grid[getIndex(x + dir, y)] === EMPTY) {
+                                growthPositions.push({x: x + dir, y: y});
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Apply growth
+            for (const pos of growthPositions) {
+                if (isInBounds(pos.x, pos.y) && grid[getIndex(pos.x, pos.y)] === EMPTY) {
+                    grid[getIndex(pos.x, pos.y)] = PLANT;
+                }
+            }
+        }
+
+        // Tornado effect
+        function createTornado(x, y) {
+            tornadoActive = true;
+            tornadoX = x;
+            tornadoY = y;
+            
+            // Auto deactivate after a while
+            setTimeout(() => {
+                tornadoActive = false;
+            }, 10000); // 10 seconds
+        }
+
+        function updateTornado() {
+            if (!tornadoActive) return;
+            
+            // Move tornado randomly
+            tornadoX += (Math.random() * 4 - 2);
+            tornadoY += (Math.random() * 4 - 2);
+            
+            // Keep tornado in bounds
+            tornadoX = Math.max(tornadoRadius, Math.min(width - tornadoRadius, tornadoX));
+            tornadoY = Math.max(tornadoRadius, Math.min(height - tornadoRadius, tornadoY));
+            
+            // Apply tornado force to particles in radius
+            for (let x = Math.floor(tornadoX - tornadoRadius); x < Math.floor(tornadoX + tornadoRadius); x++) {
+                for (let y = Math.floor(tornadoY - tornadoRadius); y < Math.floor(tornadoY + tornadoRadius); y++) {
+                    if (!isInBounds(x, y)) continue;
+                    
+                    const dx = x - tornadoX;
+                    const dy = y - tornadoY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < tornadoRadius) {
+                        const index = getIndex(x, y);
+                        
+                        // Skip empty cells
+                        if (grid[index] === EMPTY) continue;
+                        
+                        // Calculate force direction (circular)
+                        const angle = Math.atan2(dy, dx) + Math.PI / 2;
+                        const force = 1 - (distance / tornadoRadius);
+                        
+                        const forceX = Math.cos(angle) * force * tornadoForce;
+                        const forceY = Math.sin(angle) * force * tornadoForce;
+                        
+                        // Move the particle
+                        const newX = Math.floor(x + forceX);
+                        const newY = Math.floor(y + forceY);
+                        
+                        if (isInBounds(newX, newY) && grid[getIndex(newX, newY)] === EMPTY) {
+                            // Move particle
+                            grid[getIndex(newX, newY)] = grid[index];
+                            if (grid[index] === SAND) {
+                                colors[getIndex(newX, newY)] = colors[index];
+                            }
+                            grid[index] = EMPTY;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Shop and economy functions
+        function updateCoinDisplay() {
+            document.getElementById('coinCount').textContent = playerCoins.toFixed(1);
+        }
+
+        function createGameObject(item, x, y) {
+            const objectElement = document.createElement('div');
+            objectElement.className = 'game-object';
+            objectElement.textContent = item.icon;
+            objectElement.style.left = `${x}px`;
+            objectElement.style.top = `${y}px`;
+            document.body.appendChild(objectElement);
+            
+            const gameObject = {
+                type: item.type,
+                income: item.income,
+                x: x,
+                y: y,
+                lastIncomeTime: Date.now(),
+                element: objectElement
+            };
+            
+            gameObjects.push(gameObject);
+            return gameObject;
+        }
+
+        function updateGameObjects() {
+            const currentTime = Date.now();
+            
+            for (let i = 0; i < gameObjects.length; i++) {
+                const obj = gameObjects[i];
+                
+                // Generate income every 3 seconds
+                if (currentTime - obj.lastIncomeTime >= 3000) {
+                    playerCoins += obj.income;
+                    updateCoinDisplay();
+                    obj.lastIncomeTime = currentTime;
+                    
+                    // Show coin popup
+                    const coinPopup = document.createElement('div');
+                    coinPopup.className = 'coin-popup';
+                    coinPopup.textContent = `+${obj.income}`;
+                    coinPopup.style.left = `${obj.x}px`;
+                    coinPopup.style.top = `${obj.y - 20}px`;
+                    document.body.appendChild(coinPopup);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        document.body.removeChild(coinPopup);
+                    }, 1000);
+                }
+            }
+        }
+
+        // Set up the shop UI
+        function setupShop() {
+            const shopItemsContainer = document.getElementById('shopItems');
+            shopItemsContainer.innerHTML = '';
+            
+            shopItems.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                itemElement.innerHTML = `
+                    <div class="shop-item-icon">${item.icon}</div>
+                    <div class="shop-item-info">
+                        <div class="shop-item-name">${item.name}</div>
+                        <div class="shop-item-description">Generates ${item.income} coins every 3 seconds</div>
+                    </div>
+                    <div class="shop-item-price">${item.cost} 💰</div>
+                `;
+                
+                itemElement.addEventListener('click', () => {
+                    buyItem(item);
+                });
+                
+                shopItemsContainer.appendChild(itemElement);
+            });
+            
+            // Setup event listeners
+            document.getElementById('shopButton').addEventListener('click', () => {
+                document.getElementById('shopPanel').style.display = 'block';
+                shopOpen = true;
+            });
+            
+            document.querySelector('.close-shop').addEventListener('click', () => {
+                document.getElementById('shopPanel').style.display = 'none';
+                shopOpen = false;
+            });
+            
+            // Close shop when clicking outside
+            window.addEventListener('click', (e) => {
+                if (shopOpen && e.target === document.getElementById('shopPanel')) {
+                    document.getElementById('shopPanel').style.display = 'none';
+                    shopOpen = false;
+                }
+            });
+            
+            // Initialize coin display
+            updateCoinDisplay();
+        }
+
+        function buyItem(item) {
+            if (playerCoins >= item.cost) {
+                playerCoins -= item.cost;
+                updateCoinDisplay();
+                
+                // Place the object near the player
+                const offsetX = Math.random() * 100 - 50;
+                const x = playerX + offsetX;
+                const y = playerY + playerSize/2 + 10;
+                
+                createGameObject(item, x, y);
+                
+                // Add happy effect to player
+                const playerEl = document.getElementById('player');
+                playerEl.classList.add('happy');
+                setTimeout(() => playerEl.classList.remove('happy'), 1000);
+                
+                playSound('purchase');
+            } else {
+                // Not enough coins effect
+                const coinDisplay = document.getElementById('coinDisplay');
+                coinDisplay.style.animation = 'shake 0.5s';
+                setTimeout(() => coinDisplay.style.animation = '', 500);
+                
+                playSound('error');
+            }
+        }
+
+        // Function to show event notification
+        function showEventNotification(title, description, icon = '⚡') {
+            const notification = document.getElementById('eventNotification');
+            notification.querySelector('.event-title').textContent = title;
+            notification.querySelector('.event-description').textContent = description;
+            notification.querySelector('.event-icon').textContent = icon;
+            
+            notification.classList.add('show');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Random event trigger function - called from animate()
+        function checkForRandomEvents() {
+            if (!randomEventsEnabled) return;
+            
+            const currentTime = Date.now();
+            if (currentTime - lastEventTime < EVENT_COOLDOWN) return;
+            
+            // 0.03% chance every frame to trigger an event
+            if (Math.random() < 0.0003) {
+                lastEventTime = currentTime;
+                triggerRandomEvent();
+            }
+        }
+
+        function triggerRandomEvent() {
+            // List of possible events
+            const events = [
+                {
+                    name: "Meteor Strike",
+                    icon: "☄️",
+                    action: triggerMeteorStrike,
+                    description: "A meteor is striking! Take cover!"
+                },
+                {
+                    name: "Earthquake",
+                    icon: "🌋",
+                    action: triggerEarthquake,
+                    description: "The ground is shaking!"
+                },
+                {
+                    name: "Rain Shower",
+                    icon: "🌧️",
+                    action: triggerRainShower,
+                    description: "It's starting to rain!"
+                },
+                {
+                    name: "Gold Rush",
+                    icon: "💰",
+                    action: triggerGoldRush,
+                    description: "Gold coins are appearing! Collect them quick!"
+                }
+            ];
+            
+            // Pick a random event
+            const event = events[Math.floor(Math.random() * events.length)];
+            
+            // Show notification
+            showEventNotification(event.name, event.description, event.icon);
+            
+            // Trigger the event action
+            event.action();
+        }
+
+        // Add basic event implementations
+        function triggerMeteorStrike() {
+            // Create meteor impact at random position
+            const meteorX = Math.random() * width;
+            const meteorY = height / 4;
+            const meteorRadius = 20 + Math.random() * 30;
+            
+            // Crater effect
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - meteorX;
+                    const dy = y - meteorY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < meteorRadius && isInBounds(x, y)) {
+                        if (Math.random() < 0.7) {
+                            addFire(x, y);
+                        } else {
+                            addSand(x, y, '#777777');
+                        }
+                    }
+                }
+            }
+        }
+
+        function triggerEarthquake() {
+            // Shake all sand particles
+            for (let y = height - 1; y >= 0; y--) {
+                for (let x = 0; x < width; x++) {
+                    const index = getIndex(x, y);
+                    
+                    if (grid[index] === SAND) {
+                        if (Math.random() < 0.2) {
+                            const moveX = Math.floor(Math.random() * 5 - 2);
+                            const moveY = Math.floor(Math.random() * 5 - 2);
+                            
+                            const newX = x + moveX;
+                            const newY = y + moveY;
+                            
+                            if (isInBounds(newX, newY) && grid[getIndex(newX, newY)] === EMPTY) {
+                                grid[getIndex(newX, newY)] = grid[index];
+                                colors[getIndex(newX, newY)] = colors[index];
+                                grid[index] = EMPTY;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function triggerRainShower() {
+            // Add water droplets
+            let count = 0;
+            const interval = setInterval(() => {
+                for (let i = 0; i < 10; i++) {
+                    const rainX = Math.random() * width;
+                    addWater(rainX, 0);
+                }
+                
+                count++;
+                if (count > 50) clearInterval(interval);
+            }, 100);
+        }
+
+        function triggerGoldRush() {
+            // Add free coins
+            playerCoins += 25;
+            updateCoinDisplay();
+            
+            // Visual effect
+            const coinElements = [];
+            for (let i = 0; i < 20; i++) {
+                const coinX = Math.random() * width;
+                const coinY = Math.random() * height;
+                
+                const coin = document.createElement('div');
+                coin.className = 'coin-popup';
+                coin.textContent = '+1';
+                coin.style.left = `${coinX}px`;
+                coin.style.top = `${coinY}px`;
+                document.body.appendChild(coin);
+                coinElements.push(coin);
+            }
+            
+            // Remove after animation
+            setTimeout(() => {
+                coinElements.forEach(coin => {
+                    if (coin.parentNode) {
+                        document.body.removeChild(coin);
+                    }
+                });
+            }, 1000);
+        }
+
+        // Placeholder sound function
+        function playSound(type) {
+            // In a real implementation, you would add actual sound effects
+            console.log(`Playing ${type} sound`);
+        }
+
+        // Tooltip functionality
+        function updateTooltip(e) {
+            const tooltip = document.getElementById('tooltip');
+            let text = '';
+            
+            switch (currentTool) {
+                case 'pour':
+                    text = 'Pour sand';
+                    break;
+                case 'eraser':
+                    text = 'Erase elements';
+                    break;
+                case 'obstacle':
+                    text = 'Draw obstacles';
+                    break;
+                case 'player':
+                    text = 'Control player';
+                    break;
+                case 'water':
+                    text = 'Pour water';
+                    break;
+                case 'fire':
+                    text = 'Create fire';
+                    break;
+                case 'plant':
+                    text = 'Grow plants';
+                    break;
+                case 'tornado':
+                    text = 'Create tornado';
+                    break;
+            }
+            
+            tooltip.textContent = text;
+            tooltip.style.left = `${e.clientX + 10}px`;
+            tooltip.style.top = `${e.clientY + 10}px`;
+            tooltip.style.opacity = '1';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.opacity = '0';
+        }
+
+        // Initialize shop UI when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            setupShop();
+            
+            // Show initial events notification
+            setTimeout(() => {
+                showEventNotification(
+                    '🎲 Random Events', 
+                    'Random events are enabled. Expect the unexpected!', 
+                    '✅'
+                );
+            }, 2000);
+            
+            console.log('All event listeners attached successfully');
+        });
+    </script>
+</body>
+</html>
