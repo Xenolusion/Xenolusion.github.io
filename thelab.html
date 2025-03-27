@@ -1,0 +1,855 @@
+\testz.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced RGB Liquid Laboratory</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #0a0a12;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(60, 20, 80, 0.05), rgba(10, 10, 20, 0.2));
+            pointer-events: none;
+            z-index: -1;
+            animation: ambientPulse 15s infinite alternate;
+        }
+        
+        @keyframes ambientPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .lab-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            height: 700px;
+        }
+        
+        .tubes-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            perspective: 1000px;
+            transform: rotateX(5deg);
+            position: relative;
+        }
+        
+        .tube {
+            position: relative;
+            width: 50px;
+            height: 600px;
+            border-radius: 25px;
+            background: rgba(20, 20, 20, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transition: transform 0.5s ease, filter 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tube::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: rgba(40, 40, 40, 0.5);
+            border-radius: 25px 25px 0 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tube::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 10px;
+            width: 4px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.05), 
+                rgba(255, 255, 255, 0.1), 
+                rgba(255, 255, 255, 0.05));
+            border-radius: 2px;
+            z-index: 5;
+        }
+        
+        .tube-glass {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0) 20%, 
+                rgba(255, 255, 255, 0) 80%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 95%;
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border-radius: 0 0 25px 25px;
+            filter: blur(1px);
+            animation: colorChange 10s infinite linear;
+            z-index: 1;
+            transition: height 1s ease-in-out;
+        }
+        
+        .liquid-surface {
+            position: absolute;
+            top: -5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            z-index: 2;
+            animation: surfaceWave 3s ease-in-out infinite alternate;
+        }
+        
+        .bubble {
+            position: absolute;
+            bottom: -10px;
+            background: radial-gradient(
+                circle at 65% 15%, 
+                white 1px, 
+                rgba(255, 255, 255, 0.3) 3%, 
+                rgba(255, 255, 255, 0.1) 60%, 
+                rgba(255, 255, 255, 0) 100%
+            );
+            border-radius: 50%;
+            animation: rise linear infinite;
+            opacity: 0;
+            z-index: 2;
+        }
+        
+        /* Measurement markings */
+        .tube-markings {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px);
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        .marking {
+            position: absolute;
+            width: 8px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            left: 0;
+        }
+        
+        .marking.major {
+            width: 15px;
+            height: 1px;
+        }
+        
+        .marking-text {
+            position: absolute;
+            left: 18px;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-50%);
+        }
+        
+        /* Add connecting pipes between tubes */
+        .pipes-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .pipe {
+            position: absolute;
+            height: 10px;
+            background: rgba(40, 40, 40, 0.7);
+            border-radius: 5px;
+            z-index: -1;
+        }
+        
+        .pipe::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1px;
+        }
+        
+        .pipe-valve {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #333;
+            border-radius: 50%;
+            border: 2px solid #444;
+            top: -5px;
+        }
+        
+        .pipe-valve::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(45deg, #666, #333);
+            border-radius: 50%;
+        }
+        
+        /* Control panel */
+        .control-panel {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 60px;
+            background: linear-gradient(to bottom, #333, #222);
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.7);
+        }
+        
+        .control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .knob {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #444, #333);
+            border-radius: 50%;
+            border: 2px solid #555;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 5px;
+            width: 2px;
+            height: 10px;
+            background: #aaa;
+            transform: translateY(-50%);
+        }
+        
+        .control-label {
+            margin-top: 5px;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: red;
+            box-shadow: 0 0 5px red;
+            margin: 5px;
+        }
+        
+        .led.on {
+            background-color: #00ff00;
+            box-shadow: 0 0 5px #00ff00;
+        }
+        
+        /* Vapor effect */
+        .vapor {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            border-radius: 50%;
+            opacity: 0;
+            background: rgba(255, 255, 255, 0.05);
+            filter: blur(5px);
+            animation: rise-vapor 3s ease-out forwards;
+        }
+        
+        @keyframes rise-vapor {
+            0% {
+                transform: translateX(-50%) translateY(0) scale(1);
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateX(-50%) translateY(-40px) scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Floating particles */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+        
+        .particle {
+            position: absolute;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(255, 255, 255, 0) 70%
+            );
+            border-radius: 50%;
+            opacity: 0.05;
+            animation: float-particle linear infinite;
+        }
+        
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.1;
+            }
+            90% {
+                opacity: 0.05;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(var(--translate-x)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes colorChange {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+        
+        @keyframes rise {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 0.9;
+                transform: translateY(-300px) translateX(var(--translate-x)) scale(var(--scale));
+            }
+            100% {
+                transform: translateY(-600px) translateX(var(--translate-end)) scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes surfaceWave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(2px); }
+        }
+        
+        .glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(0, 0, 0, 0) 70%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Add variations to tubes */
+        .tube:nth-child(odd) .liquid {
+            animation-delay: -3s;
+        }
+        
+        .tube:nth-child(3n) .liquid {
+            animation-delay: -5s;
+        }
+        
+        .tube:nth-child(1) {
+            height: 620px;
+            transform: translateY(-10px) rotate(-1deg);
+        }
+        
+        .tube:nth-child(2) {
+            height: 550px;
+            transform: translateY(25px) rotate(1deg);
+        }
+        
+        .tube:nth-child(3) {
+            height: 590px;
+            transform: translateY(5px) rotate(-0.5deg);
+        }
+        
+        .tube:nth-child(4) {
+            height: 580px;
+            transform: translateY(10px) rotate(0.8deg);
+        }
+        
+        .tube:nth-child(5) {
+            height: 600px;
+            transform: translateY(0) rotate(-1.2deg);
+        }
+        
+        .tube:nth-child(6) {
+            height: 560px;
+            transform: translateY(20px) rotate(0.5deg);
+        }
+        
+        .tube:nth-child(7) {
+            height: 610px;
+            transform: translateY(-5px) rotate(-0.7deg);
+        }
+        
+        /* Liquid fill levels */
+        .tube:nth-child(1) .liquid { height: 92%; }
+        .tube:nth-child(2) .liquid { height: 85%; }
+        .tube:nth-child(3) .liquid { height: 97%; }
+        .tube:nth-child(4) .liquid { height: 88%; }
+        .tube:nth-child(5) .liquid { height: 95%; }
+        .tube:nth-child(6) .liquid { height: 90%; }
+        .tube:nth-child(7) .liquid { height: 93%; }
+        
+        /* Base platform */
+        .platform {
+            position: absolute;
+            bottom: -50px;
+            width: 800px;
+            height: 20px;
+            background: linear-gradient(to bottom, #333, #222);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        /* Digital display */
+        .digital-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 180px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+            border: 1px solid #444;
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            text-shadow: 0 0 5px #0f0;
+            overflow: hidden;
+        }
+        
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 0, 0.2);
+            opacity: 0.7;
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes scanline {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    <div class="particles-container"></div>
+    
+    <div class="lab-container">
+        <div class="tubes-wrapper">
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            <div class="tube">
+                <div class="liquid"><div class="liquid-surface"></div></div>
+                <div class="tube-glass"></div>
+                <div class="glow"></div>
+                <div class="tube-markings"></div>
+            </div>
+            
+            <div class="pipes-container"></div>
+        </div>
+        
+        <div class="platform"></div>
+        
+        <div class="control-panel">
+            <div class="control">
+                <div class="knob" data-function="color-speed"></div>
+                <div class="control-label">COLOR SHIFT</div>
+            </div>
+            <div class="control">
+                <div class="knob" data-function="bubble-rate"></div>
+                <div class="control-label">BUBBLE RATE</div>
+            </div>
+            <div class="control">
+                <div class="led"></div>
+                <div class="control-label">SYSTEM</div>
+            </div>
+            <div class="control">
+                <div class="knob" data-function="flow-rate"></div>
+                <div class="control-label">FLOW RATE</div>
+            </div>
+            <div class="control">
+                <div class="knob" data-function="temp"></div>
+                <div class="control-label">TEMPERATURE</div>
+            </div>
+        </div>
+        
+        <div class="digital-display">
+            <div class="scanline"></div>
+            <div id="display-text">
+                > SYSTEM ONLINE<br>
+                > MONITORING ACTIVE<br>
+                > T: 23.7°C<br>
+                > P: 1.02 ATM
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create bubbles dynamically
+        const tubes = document.querySelectorAll('.tube');
+        let bubbleRate = 100; // ms between bubbles
+        let colorSpeed = 10; // seconds for color cycle
+        let flowActive = false;
+        let temperature = 23.7;
+        
+        // Initialize measurement markings
+        tubes.forEach(tube => {
+            const markings = tube.querySelector('.tube-markings');
+            const height = tube.offsetHeight - 40;
+            
+            // Create 10 major markings
+            for(let i = 0; i <= 10; i++) {
+                const marking = document.createElement('div');
+                marking.classList.add('marking', 'major');
+                marking.style.top = `${height - (i * height/10)}px`;
+                
+                const text = document.createElement('div');
+                text.classList.add('marking-text');
+                text.textContent = `${i * 100}`;
+                text.style.top = `${height - (i * height/10)}px`;
+                
+                markings.appendChild(marking);
+                markings.appendChild(text);
+            }
+            
+            // Create minor markings
+            for(let i = 0; i <= 50; i++) {
+                if(i % 5 !== 0) { // Skip positions where major markings exist
+                    const marking = document.createElement('div');
+                    marking.classList.add('marking');
+                    marking.style.top = `${height - (i * height/50)}px`;
+                    markings.appendChild(marking);
+                }
+            }
+        });
+        
+        // Create connecting pipes
+        const pipesContainer = document.querySelector('.pipes-container');
+        for(let i = 0; i < tubes.length - 1; i++) {
+            const tube1 = tubes[i];
+            const tube2 = tubes[i + 1];
+            
+            const pipe = document.createElement('div');
+            pipe.classList.add('pipe');
+            
+            // Position pipe between tubes at 1/3 height
+            const tubeHeight = tube1.offsetHeight;
+            const y = tubeHeight * 0.3;
+            const x1 = tube1.offsetLeft + tube1.offsetWidth;
+            const x2 = tube2.offsetLeft;
+            
+            pipe.style.width = `${x2 - x1}px`;
+            pipe.style.left = `${x1}px`;
+            pipe.style.top = `${y}px`;
+            
+            // Add valve
+            const valve = document.createElement('div');
+            valve.classList.add('pipe-valve');
+            valve.style.left = `${(x2 - x1) / 2 - 8}px`;
+            pipe.appendChild(valve);
+            
+            pipesContainer.appendChild(pipe);
+        }
+        
+        function createBubble() {
+            // Select a random tube
+            const randomTubeIndex = Math.floor(Math.random() * tubes.length);
+            const tube = tubes[randomTubeIndex];
+            const liquid = tube.querySelector('.liquid');
+            
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            
+            // Random properties for each bubble
+            const size = Math.random() * 12 + 3; // Smaller bubbles for narrow tubes
+            const left = Math.random() * 70 + 15; // Keep bubbles centered in tube
+            const duration = Math.random() * 8 + 4;
+            const translateEnd = (Math.random() - 0.5) * 15; // Less horizontal movement
+            const translateX = (Math.random() - 0.5) * 10;
+            const scale = Math.random() * 0.5 + 0.8;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${left}%`;
+            bubble.style.animationDuration = `${duration}s`;
+            bubble.style.setProperty('--translate-end', `${translateEnd}px`);
+            bubble.style.setProperty('--translate-x', `${translateX}px`);
+            bubble.style.setProperty('--scale', scale);
+            
+            liquid.appendChild(bubble);
+            
+            // Remove bubble after animation completes
+            setTimeout(() => {
+                bubble.remove();
+            }, duration * 1000);
+        }
+        
+        function createVapor(tube) {
+            const vapor = document.createElement('div');
+            vapor.classList.add('vapor');
+            tube.appendChild(vapor);
+            
+            // Remove vapor after animation completes
+            setTimeout(() => {
+                vapor.remove();
+            }, 3000);
+        }
+        
+        // Create particles for ambient effect
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles-container');
+            
+            for(let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 20 + 5;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 10;
+                const translateX = (Math.random() - 0.5) * 200;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}%`;
+                particle.style.bottom = `-${size}px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.setProperty('--translate-x', `${translateX}px`);
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Create bubbles at random intervals
+        function startBubbles() {
+            // Create more bubbles at once for multiple tubes
+            setInterval(createBubble, bubbleRate);
+            // Add occasional larger bubble bursts
+            setInterval(() => {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(createBubble, i * 100);
+                }
+            }, 3000);
+            
+            // Add occasional vapor
+            setInterval(() => {
+                const randomTube = tubes[Math.floor(Math.random() * tubes.length)];
+                createVapor(randomTube);
+            }, 4000);
+        }
+        
+        // Update display text
+        function updateDisplay() {
+            const displayText = document.getElementById('display-text');
+            const time = new Date().toLocaleTimeString();
+            
+            displayText.innerHTML = `
+                > SYSTEM ONLINE<br>
+                > TIME: ${time}<br>
+                > T: ${temperature.toFixed(1)}°C<br>
+                > FLOW: ${flowActive ? 'ACTIVE' : 'INACTIVE'}
+            `;
+            
+            setTimeout(updateDisplay, 1000);
+        }
+        
+        // Make knobs interactive
+        const knobs = document.querySelectorAll('.knob');
+        knobs.forEach(knob => {
+            let rotation = 0;
+            
+            knob.addEventListener('click', () => {
+                rotation = (rotation + 30) % 360;
+                knob.style.transform = `rotate(${rotation}deg)`;
+                
+                // Apply effect based on knob function
+                const knobFunction = knob.dataset.function;
+                if(knobFunction === 'color-speed') {
+                    // Change color cycle speed
+                    colorSpeed = 20 - (rotation / 360 * 15);
+                    document.querySelectorAll('.liquid').forEach(liquid => {
+                        liquid.style.animationDuration = `${colorSpeed}s`;
+                    });
+                }
+                else if(knobFunction === 'bubble-rate') {
+                    // Change bubble frequency
+                    bubbleRate = 500 - (rotation / 360 * 450);
+                }
+                else if(knobFunction === 'flow-rate') {
+                    // Toggle flow animation
+                    flowActive = rotation > 180;
+                    document.querySelector('.led').classList.toggle('on', flowActive);
+                }
+                else if(knobFunction === 'temp') {
+                    // Change temperature display
+                    temperature = 20 + (rotation / 360 * 15);
+                }
+            });
+        });
+        
+        // Create tube click effects
+        tubes.forEach(tube => {
+            tube.addEventListener('click', () => {
+                // Create extra bubbles on click
+                for(let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        const liquid = tube.querySelector('.liquid');
+                        
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('bubble');
+                        
+                        const size = Math.random() * 12 + 3;
+                        const left = Math.random() * 70 + 15;
+                        const duration = Math.random() * 8 + 4;
+                        const translateEnd = (Math.random() - 0.5) * 15;
+                        const translateX = (Math.random() - 0.5) * 10;
+                        const scale = Math.random() * 0.5 + 0.8;
+                        
+                        bubble.style.width = `${size}px`;
+                        bubble.style.height = `${size}px`;
+                        bubble.style.left = `${left}%`;
+                        bubble.style.animationDuration = `${duration}s`;
+                        bubble.style.setProperty('--translate-end', `${translateEnd}px`);
+                        bubble.style.setProperty('--translate-x', `${translateX}px`);
+                        bubble.style.setProperty('--scale', scale);
+                        
+                        liquid.appendChild(bubble);
+                        
+                        setTimeout(() => bubble.remove(), duration * 1000);
+                    }, i * 50);
+                }
+                
+                // Create vapor effect
+                createVapor(tube);
+                
+                // Temporary glow effect
+                tube.style.filter = 'brightness(1.3)';
+                setTimeout(() => {
+                    tube.style.filter = '';
+                }, 300);
+            });
+            
+            // Add hover effects
+            tube.addEventListener('mouseenter', () => {
+                const originalTransform = tube.style.transform;
+                if (!originalTransform.includes('translateY(-10px)')) {
+                    tube.style.transform = `translateY(-10px) ${originalTransform}`;
+                }
+            });
+            
+            tube.addEventListener('mouseleave', () => {
+                tube.style.transform = tube.style.transform.replace('translateY(-10px) ', '');
+            });
+        });
+        
+        // Initialize
+        createParticles();
+        startBubbles();
+        updateDisplay();
+    </script>
+</body>
+</html>
